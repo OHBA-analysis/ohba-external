@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ $# -lt 2 ] ; then
+  echo "Usage: $0 <list args for avwcreatehd>"
+  echo "    saves an analyze header"
+  return 1;
+fi
+
+FSLOUTPUTTYPE=ANALYZE
+export FSLOUTPUTTYPE
+
+$FSLDIR/bin/avwcreatehd $@

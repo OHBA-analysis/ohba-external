@@ -1,0 +1,3 @@
+function caf
+
+close all;
