@@ -1,4 +1,4 @@
-### OSL-external
+### OHBA-external
 
 Contains shared libraries common to OHBA software
 
