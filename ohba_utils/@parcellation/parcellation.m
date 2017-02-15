@@ -61,17 +61,22 @@ classdef parcellation < handle
 			% If no labels are specified, and the input file is not a mat file, default labels will be generated either by
 			% - If a .nii file was loaded, looking for a .txt file with the same file name
 			% - Otherwise, placeholder labels 'ROI 1', 'ROI 2' etc. will be generated
-					
+			
+			osldir = getenv('OSLDIR');
+			if isempty(osldir)
+				error('OSL must be initialized because the OSL standard masks are used as templates for parcellations');
+			end
+
 			% If file is not present, try looking in the OSL parcellations folder
 			if ischar(input_mask) && ~exist(input_mask)
-				input_mask = fullfile(getenv('OSLDIR'),'parcellations',input_mask);
+				input_mask = fullfile(osldir,'parcellations',input_mask);
 			end
 
 			if nargin < 2 || isempty(labels) 
 				labels = [];
 			else
 				if ~exist(labels)
-					labels = fullfile(getenv('OSLDIR'),'parcellations',labels);
+					labels = fullfile(osldir,'parcellations',labels);
 				end
 
 				[~,~,ext] = fileparts(labels);
