@@ -243,8 +243,16 @@ classdef parcellation < handle
 			% Convert XYZ x Frames to Vox x Frames
 			% If no matrix is provided, it will return the matrix
 			% representation of the parcellation
+			% Also supports converting Parcels x Frames to Vox x Frames
+
 			if nargin < 2 || isempty(dat4) 
-				dat4 = self.weight_matrix;
+				dat4 = self.weight_mask;
+			end
+
+			% A 2D matrix input instead of 4D means we took in Parcels x Frames
+			% Use to_vol to convert it to a volume first
+			if ndims(dat4) == 2
+				dat4 = self.to_vol(dat4);
 			end
 			
 			dat2 = vols2matrix(dat4,self.template_mask);
