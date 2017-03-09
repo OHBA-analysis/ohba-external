@@ -84,13 +84,14 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	end
 
 	if isfinite(resize_factor)
+		img2 = [];
 		for j = size(img,4):-1:1
 			img2(:,:,:,j) = imresize(img(:,:,:,j),10); % Useful for working with 8mm masks
 		end
 		img = img2;
 	end
 
-	fh = figure;
+	fh = figure('Color','k');
 	set(fh,'Color','k')
 	montage(img)
 	ah = findobj(fh,'type','axes');
@@ -102,7 +103,7 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	% c(c_range<-clim(1),:) = negative(c_range(c_range<-clim(1)));
 	% c(c_range>clim(1),:) = positive(c_range(c_range>clim(1)));
 	colormap(ah,c);
-	cbar=colorbar(ah,'Color','w');
+	cbar=colorbar('peer',ah,'Color','w');
 	set(ah,'CLim',[-clim(2) clim(2)])
 	% ylabel(cbar,'Partial correlation','FontSize',16)
 	set(cbar,'YTick',unique([linspace(-clim(2),-clim(1),4) linspace(clim(1),clim(2),4) ]))
