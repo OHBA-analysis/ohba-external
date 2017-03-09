@@ -22,7 +22,7 @@ function [fh,ah] = plot_activation(self,activation,clim)
 
 	% Apply spatial smoothing
 	activation(~isfinite(activation)) = 0;
-	activation = imgaussfilt3(activation,1); % Apply spatial smoothing
+	activation = smooth3(activation,'gaussian',5,1); % Apply spatial smoothing
 
 	mask = self.template_mask;
 
