@@ -87,7 +87,6 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	end
 
 	fh = figure('Color','k');
-	set(fh,'Color','k')
 	montage(img)
 	ah = findobj(fh,'type','axes');
 
@@ -98,11 +97,18 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	% c(c_range<-clim(1),:) = negative(c_range(c_range<-clim(1)));
 	% c(c_range>clim(1),:) = positive(c_range(c_range>clim(1)));
 	colormap(ah,c);
-	cbar=colorbar('peer',ah,'Color','w');
-	set(ah,'CLim',[-clim(2) clim(2)])
-	% ylabel(cbar,'Partial correlation','FontSize',16)
-	set(cbar,'YTick',unique([linspace(-clim(2),-clim(1),4) linspace(clim(1),clim(2),4) ]))
-	
+	cbar=colorbar('peer',ah);
+    set(ah,'CLim',[-clim(2) clim(2)])
+
+    cticks = unique([linspace(-clim(2),-clim(1),4) linspace(clim(1),clim(2),4)]);
+    if ~verLessThan('matlab','8.4')
+		set(cbar,'Color','w');
+        set(cbar,'YTick',cticks)
+    else
+        % Map cticks onto 0.5+[0 size(c,1)] -> [-clim(2) clim(2)]
+        set(cbar,'YTick',(cticks/clim(2) + 1)*size(c,1)/2 + 0.5,'YTickLabel',cticks)
+    end
+
 end
 
 function fn = merge_cmaps(positive,negative,clim)
