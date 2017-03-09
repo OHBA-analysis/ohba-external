@@ -1,5 +1,11 @@
 function plot_network(self,cmat,threshold,mapping)
 	% Plot connection matrices as network with edges
+
+	if verLessThan('matlab','8.4')
+		fprintf(2,'Network plotting only supported on Matlab R2014b and higher');
+		return
+	end
+	
     if nargin < 4 || isempty(mapping)
        	mapping = @(w) (4*w).^2; % Apply a transformation to map connection weight to line width
     end

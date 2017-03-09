@@ -1,6 +1,11 @@
 function show_parcellation(p)
 	% Interactive tool to view ROIs given a p and corresponding mask
 	
+	if verLessThan('matlab','8.4')
+		fprintf(2,'Parcellation plotting only supported on Matlab R2014b and higher');
+		return
+	end
+	
 	plot_parcel_volume = false;
 
 	mask = p.template_mask;
