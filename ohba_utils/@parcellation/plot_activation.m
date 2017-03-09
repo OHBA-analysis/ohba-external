@@ -17,7 +17,7 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	% If in doubt, check with FSLVIEW
 
 	if verLessThan('matlab','8.4')
-		fprintf(2,'Activation map plotting only supported on Matlab R2014b and higher');
+		fprintf(2,'Activation map plotting only supported on Matlab R2014b and higher\n');
 		return
 	end
 

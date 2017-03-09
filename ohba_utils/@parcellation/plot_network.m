@@ -2,7 +2,7 @@ function plot_network(self,cmat,threshold,mapping)
 	% Plot connection matrices as network with edges
 
 	if verLessThan('matlab','8.4')
-		fprintf(2,'Network plotting only supported on Matlab R2014b and higher');
+		fprintf(2,'Network plotting only supported on Matlab R2014b and higher\n');
 		return
 	end
 	

@@ -2,7 +2,7 @@ function show_parcellation(p)
 	% Interactive tool to view ROIs given a p and corresponding mask
 	
 	if verLessThan('matlab','8.4')
-		fprintf(2,'Parcellation plotting only supported on Matlab R2014b and higher');
+		fprintf(2,'Parcellation plotting only supported on Matlab R2014b and higher\n');
 		return
 	end
 	
