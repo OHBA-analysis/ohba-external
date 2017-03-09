@@ -76,7 +76,20 @@ function [fh,ah] = plot_activation(self,activation,clim)
 
 	img = img(:,:,:,end:-1:1); % In the montage, put the top slices at the top of the frame
 	img = imrotate(img,90);
-	img = imresize(img,10); % Useful for working with 8mm masks
+
+	if self.resolution == 8
+		resize_factor = 10;
+	else
+		resize_factor = NaN;
+	end
+
+	if isfinite(resize_factor)
+		for j = size(img,4):-1:1
+			img2(:,:,:,j) = imresize(img(:,:,:,j),10); % Useful for working with 8mm masks
+		end
+		img = img2;
+	end
+
 	fh = figure;
 	set(fh,'Color','k')
 	montage(img)
