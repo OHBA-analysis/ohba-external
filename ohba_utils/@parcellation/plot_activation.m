@@ -16,11 +16,6 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	% radiological view, with the left side of the brain appearing on the right side of the plot
 	% If in doubt, check with FSLVIEW
 
-	if verLessThan('matlab','8.4')
-		fprintf(2,'Activation map plotting only supported on Matlab R2014b and higher\n');
-		return
-	end
-
 	if isvector(activation)
 		activation = self.to_vol(activation);
 	end
