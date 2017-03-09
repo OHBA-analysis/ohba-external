@@ -73,11 +73,8 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	img = imrotate(img,90);
 	img = imresize(img,10); % Useful for working with 8mm masks
 	fh = figure;
-	ah = axes(fh);
-
 	set(fh,'Color','k')
 	montage(img)
-
 	ah = findobj(fh,'type','axes');
 
 	c_range = linspace(0,clim(2),100).';
