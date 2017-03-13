@@ -304,26 +304,34 @@ classdef parcellation < handle
 			self.show_parcellation();
 		end
 
-		function fslview(self,single_volume)
-			% Display this parcellation using fslview
-			% If single_volume == true, then there will be one binarized
-			% volume where the value indicates the parcel
-			if nargin < 2 || isempty(single_volume) 
-				single_volume = false;
-			end
-			
-			% Display the parcellation using fslview
-			if single_volume
-				p = self.to_vol(self.value_vector);
-				clim = [0 self.n_parcels];
-			else
-				p = self.weight_mask;
-				clim = [0 max(self.weight_mask(:))];
+		function fslview(self,activation,clim)
+			% Display parcellation or parcel activity using fslview
+			% 
+			% INPUTS
+			% - activation - Activation input in volume format or format supported by p.to_vol()
+			% 				 By default, the weight mask is used
+			% - clim - Colour axis limit, uses fslview default if not specified (auto scaled)
+			% 
+			% Other examples
+			%	p.fslview() - Shows each parcel as a separate volume
+			%   p.fslview(p.value_vector) - Shows parcellation as a single volume
+
+			if nargin < 2 || isempty(activation) 
+				activation = self.weight_mask;
 			end
 
-			fname = self.savenii(p);
+			if ndims(activation) < 3
+				activation = self.to_vol(activation);
+			end
+
+			if nargin < 3 || isempty(clim) 
+				clim = [];
+			end
+			
+			fname = self.savenii(activation);
 			fslview(fname,clim);
-			delete(fname)
+			pause(5);
+			delete([fname '.nii.gz'])
 		end
 
 		function fname = savenii(self,data,fname)
