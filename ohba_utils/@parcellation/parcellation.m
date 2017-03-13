@@ -12,6 +12,8 @@ classdef parcellation < handle
 	% - p.to_matrix - Convert a 4D volume to a matrix
 	%
 	% Try p.plot or p.fslview to display regions
+	%
+	% March 2017 - Romesh Abeysuriya
 
 	properties
 	    weight_mask % XYZ x Parcels matrix of parcel weights
@@ -216,6 +218,11 @@ classdef parcellation < handle
 			%
 			% Commonly used to produce a matrix suitable for use with fslview
 
+			if (numel(dat2) == numel(self.weight_mask)) && all(size(dat2) == size(self.weight_mask))
+				dat4 = dat2;
+				return
+			end
+
 			% Ensure matrix is in correct orientation
 			% If matrix is 
 			if size(dat2,1) ~= self.n_voxels && size(dat2,1) ~= self.n_parcels % If the first dimension is neither n_voxels nor n_parcels
@@ -247,6 +254,11 @@ classdef parcellation < handle
 
 			if nargin < 2 || isempty(dat4) 
 				dat4 = self.weight_mask;
+			end
+
+			if ndims(dat4) == 2 && size(dat4,1) == self.n_voxels && size(dat4,2) == self.n_parcels
+				dat2 = dat4;
+				return
 			end
 
 			% A 2D matrix input instead of 4D means we took in Parcels x Frames
