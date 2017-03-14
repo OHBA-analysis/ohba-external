@@ -1,17 +1,33 @@
 classdef parcellation < handle
 	% Class-based representation of parcellations
 	%
-	% Designed to work with parcellations on OSL standard masks only
-	% e.g. currently doesn't work with HCP/fieldtrip coordinates
+	% This class is designed to facilitate working with parcels and standard masks
+	% Key tasks are
+	%
+	% - Reading in a parcellation and matching it to a standard mask
+	% - Reshaping between volume and matrix representations of the parcellation
+	% - Removing overlap and binarizing parcellations
+	% - Return parcel representations compatible with MEG-ROI-nets
+	% - Save nii files with qform/xform headers copied from template files
+	% - Display volume figures in fslview or Matlab from parcel data
+	%
+	% For further help, see the README.md file or osl_example_parcellation.m
+	%
 	% 
-	% KEY REPRESENTATIONS
-	%  - p.weight_mask - XYZ x Parcels
+	% KEY PROPERTIES
+	%  - p.weight_mask - XYZ x Parcels representation of loaded parcellation
+	%  - p.template_mask - The underlying brain image
 	%
 	% KEY MANIPULATIONS
 	% - p.to_vol - Convert a matrix to a 4D volume
 	% - p.to_matrix - Convert a 4D volume to a matrix
+	% - p.binarize - Return weight mask with no overlap or weights
+	% 
+	% KEY PLOTTING
+	% - p.plot_activation - Display montage in Matlab
+	% - p.fslview - Display parcellation in fslview
+	% - p.fslview(m) - Convert m to volume and display in fslview
 	%
-	% Try p.plot or p.fslview to display regions
 	%
 	% March 2017 - Romesh Abeysuriya
 
@@ -90,7 +106,7 @@ classdef parcellation < handle
 						d = load(labels);
 						labels = d.labels;
 					otherwise
-						error('OSL:UnrecognizedExtension',sprintf('Unrecognized label extension ''%s'', must end with .txt or .mat',ext));
+						error(sprintf('Unrecognized label extension ''%s'', must end with .txt or .mat',ext));
 				end
 			end
 
@@ -449,6 +465,9 @@ classdef parcellation < handle
 
 			if numel(m) == 1
 				idx = find(mask_res == m);
+				if isempty(idx)
+					error(sprintf('No masks have the specified spatial resolution (%d mm)',m));
+				end
 			elseif size(m,2) == 1 % If column vector given
 				idx = find(mask_vox == size(m,1));
 				if isempty(idx)
@@ -469,10 +488,13 @@ classdef parcellation < handle
 
 			if nargout > 1
 				OSLDIR = getenv('OSLDIR');
-				mask_fname = [OSLDIR '/std_masks/MNI152_T1_' num2str(spatial_res) 'mm_brain.nii.gz'];
+				mask_fname = fullfile(osldir,'std_masks',['MNI152_T1_' num2str(spatial_res) 'mm_brain.nii.gz']);
 			end
 
 			if nargout > 2
+				if ~exist(mask_fname)
+					error(sprintf('Mask file could not be located: %s',mask_fname));
+				end
 				mask = readnii(mask_fname);
 			end
 		end
