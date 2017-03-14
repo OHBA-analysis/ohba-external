@@ -353,7 +353,7 @@ classdef parcellation < handle
 			end
 
 			if nargin < 3 || isempty(clim) 
-				clim = [];
+				clim = [min(activation(:)) max(activation(:))];
 			end
 			
 			fname = self.savenii(activation);
