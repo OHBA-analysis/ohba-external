@@ -359,10 +359,10 @@ classdef parcellation < handle
 			fname = self.savenii(activation);
 			fslview(fname,clim);
 			pause(5);
-			delete([fname '.nii.gz'])
+			delete(fname)
 		end
 
-		function fname = savenii(self,data,fname)
+		function output_fname = savenii(self,data,fname)
 			% Save a nii file, with qform/xform copied from the original mask file
 			if nargin < 3 || isempty(fname) 
 				fname = tempname('.');
@@ -379,6 +379,8 @@ classdef parcellation < handle
 		    [~,~,scales] = read_avw(self.template_fname);
 		    save_avw(data,fname,'f',scales);
 		    system(['fslcpgeom ' self.template_fname ' ' fname ' -d']);
+		    output_fname = [fname '.nii.gz'];
+
 		end
 
 		function [coords,weights] = roi_coords(self)
