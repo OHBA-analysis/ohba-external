@@ -367,6 +367,14 @@ classdef parcellation < handle
 			if nargin < 3 || isempty(fname) 
 				fname = tempname('.');
 			end
+
+			if nargin < 2 || isempty(data) 
+				data = self.weight_mask;
+			end
+
+			if ischar(data)
+				error('Input data was a string. Correct usage is ''savenii(data,fname)''')
+			end
 					
 		    [~,~,scales] = read_avw(self.template_fname);
 		    save_avw(data,fname,'f',scales);
