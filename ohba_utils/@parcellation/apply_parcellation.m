@@ -10,12 +10,12 @@ function D2 = apply_parcellation(self,D)
 	%
 	%     D = p.apply_parcellation(D)
 	%	  D.save()
-
-	% - getmontage -> returning the current or any other montage structure, 
-	%                 depending on list provided (current one by default if 
-	%                 no list passed).
-
-	% - getnumber  -> returning the number of montage(s) available
+	%
+	% If the input is an MEEG object, then the correct montage should
+	% be selected prior to passing it in. If not, this function will
+	% try to guess which is the correct parcellation (but this will 
+	% fail in many cases because OSL beamforming adds 2 valid montages
+	% by default)
 
 	% First, set the montage correctly
 	if isa(D,'meeg')
