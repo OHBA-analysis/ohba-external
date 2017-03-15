@@ -1,9 +1,10 @@
-function [fh,ah] = plot_activation(self,activation,clim)
+function [fh,ah] = plot_activation(self,activation,clim,smoothing)
 	% Render spatial maps in slices
 	%
 	% INPUTS
 	% - activation - matrix of activation values (parcels x 1, voxels x 1, or XYZ x 1)
 	% - clim - colour range for plot
+	% - smoothing - standard deviation (in voxels) of Gaussian smoothing kernel. Set to [] for no smoothing
 	%
 	% The colour limit supports a number of different options
 	% clim = [low high] -> absolute values for the correlations plotted, red/blue discontinuous colormap (cf. Adam)
@@ -16,14 +17,20 @@ function [fh,ah] = plot_activation(self,activation,clim)
 	% radiological view, with the left side of the brain appearing on the right side of the plot
 	% If in doubt, check with FSLVIEW
 
+	if nargin < 4 || isempty(smoothing) 
+		smoothing = 1;
+	end
+	
 	if isvector(activation)
 		activation = self.to_vol(activation);
 	end
 
 	% Apply spatial smoothing
 	activation(~isfinite(activation)) = 0;
-	activation = smooth3(activation,'gaussian',5,1); % Apply spatial smoothing
-
+	if ~isempty(smoothing)
+		activation = smooth3(activation,'gaussian',5,smoothing); % Apply spatial smoothing
+	end
+	
 	mask = self.template_mask;
 
 	if nargin < 3 || isempty(clim) 

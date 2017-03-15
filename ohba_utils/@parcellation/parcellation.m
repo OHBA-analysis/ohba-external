@@ -1,4 +1,4 @@
-classdef parcellation < matlab.mixin.Copyable
+classdef parcellation 
 	% Class-based representation of parcellations
 	%
 	% This class is designed to facilitate working with parcels and standard masks
@@ -179,7 +179,7 @@ classdef parcellation < matlab.mixin.Copyable
 			self.labels = labels(:);
 		end
 
-		function set.weight_mask(self,mask)
+		function self = set.weight_mask(self,mask)
 			% Possible mask sizes
 			% - Vox x 1 
 			% - Vox x Parcels 
