@@ -1,4 +1,4 @@
-classdef parcellation < handle
+classdef parcellation < matlab.mixin.Copyable
 	% Class-based representation of parcellations
 	%
 	% This class is designed to facilitate working with parcels and standard masks
