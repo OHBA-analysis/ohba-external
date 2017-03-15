@@ -1,5 +1,5 @@
 function show_parcellation(p)
-	% Interactive tool to view ROIs given a p and corresponding mask
+	% Interactive tool to view ROIs
 	
 	if verLessThan('matlab','8.4')
 		fprintf(2,'Parcellation plotting only supported on Matlab R2014b and higher\n');
@@ -12,10 +12,6 @@ function show_parcellation(p)
 	rois.masks = p.weight_mask;
 	rois.long_names = p.labels;
 	mni_coords = p.template_coordinates;
- %    mask       = load_untouch_nii(mask);
- %    mni_coords = nifti_mask2coord(mask);
-	% rois       = load(parcel);
-
 
 	f=figure;
 	shp = alphaShape(mni_coords(:,1),mni_coords(:,2),mni_coords(:,3));

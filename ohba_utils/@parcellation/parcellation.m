@@ -329,6 +329,7 @@ classdef parcellation
 		end
 
 		function plot(self)
+			% Standard wrapper for graphical display - calls show_parcellation()
 			self.show_parcellation();
 		end
 
