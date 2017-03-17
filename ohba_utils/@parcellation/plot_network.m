@@ -75,7 +75,7 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 	set(p,'FaceVertexAlphaData',[amat;amat])
 	set(p,'EdgeAlpha','flat','EdgeColor','flat')
 
-	set(gca,'ALim',[threshold threshold+eps]);
+	set(gca,'ALim',[threshold threshold+1e-5]);
 
 	if ~verLessThan('matlab','8.4')
 		set(gca,'SortMethod','child');

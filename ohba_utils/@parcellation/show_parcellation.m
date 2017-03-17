@@ -14,17 +14,17 @@ function show_parcellation(p)
 	% Add numbers to ROI names in dropdown list
 	nstr = arrayfun(@(j) sprintf('%d - %s',j,p.labels{j}),1:p.n_parcels,'UniformOutput',false);
 	a = uicontrol(f,'Style','popupmenu','String',nstr,'Value',1,'Units','characters');
-	a.Position(3) = 50;
+	pos = get(a,'Position');
+    set(a,'Position',[pos(1:2) 50 pos(4)]);
 
 	h_roi = scatter3(NaN,NaN,NaN,30,'r'); % Handle to scatter plot to show ROI coordinates
-
-	a.Callback = @(a,b,c) draw_roi(p,a.Value,h_roi);
-	a.Callback(a); % Show the first ROI immediately
+        
+	set(a,'Callback',@(a,b,c) draw_roi(p,a,h_roi));
+	draw_roi(p,a,h_roi); % Show the first ROI immediately
 
 end
 
-function draw_roi(p,idx,h_roi)
-    h_roi.XData = p.roi_coordinates{idx}(:,1);
-    h_roi.YData = p.roi_coordinates{idx}(:,2);
-    h_roi.ZData = p.roi_coordinates{idx}(:,3);
+function draw_roi(p,a,h_roi)
+    idx = get(a,'Value');
+    set(h_roi,'XData',p.roi_coordinates{idx}(:,1),'YData',p.roi_coordinates{idx}(:,2),'ZData',p.roi_coordinates{idx}(:,3));
 end
