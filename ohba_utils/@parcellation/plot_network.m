@@ -45,6 +45,10 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 	assert(size(cmat,1) == size(cmat,2),'Input matrix must be square');
 	assert(size(cmat,1) == self.n_parcels,sprintf('Correlation matrix has %d ROIs, but parcellation has %d parcels',size(cmat,1),self.n_parcels));
 	
+	% Get just the upper triangle indices and corresponding from/to ROIs
+	ind = find(triu(ones(size(cmat)),1));
+	[from,to] = ind2sub(size(cmat),ind);
+
 	% Render the brain surface
 	f=figure('Color','w');
 	mesh = gifti(fullfile(osldir,'spm12','canonical','cortex_5124.surf.gii'));
@@ -57,14 +61,11 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 	hold on
 	cmap = colormap(bluewhitered(256));
 	colorbar
-	set(gca,'CLim',[-1 1]*max(abs(cmat(:)))); % Colour axis limit is symmetric and based on maximum range of the data
+
+	set(gca,'CLim',[-1 1]*max(abs(cmat(ind)))); % Colour axis limit is symmetric and based on maximum off-diagonal of the data
 
 	roi_centers = self.roi_centers;
 	s = scatter3(roi_centers(:,1),roi_centers(:,2),roi_centers(:,3),node_vals,'o','filled','MarkerFaceColor',cmap(1,:));
-
-	% Get just the upper triangle indices and corresponding from/to ROIs
-	ind = find(triu(ones(size(cmat)),1));
-	[from,to] = ind2sub(size(cmat),ind);
 
 	p = patch('Vertices',roi_centers([from;to],:),'Faces',[1:length(from);length(from)+1:2*length(from)].','FaceColor','none','LineWidth',3,'CDataMapping','scaled','AlphaDataMapping','scaled') 
 	set(p,'FaceVertexCData',cmat([ind;ind]))
