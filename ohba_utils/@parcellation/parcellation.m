@@ -129,6 +129,7 @@ classdef parcellation
 				input_mask = d.mask;
 
 				% Support legacy files that store parcellations as cell array of ROI coordinates
+				% This should be removable in the near future
 				if isfield(d,'roi_coords') 
 					input_mask = zeros(size(d.mask,1),1);
 					for j = 1:length(d.roi_coords)
@@ -384,7 +385,7 @@ classdef parcellation
 
 		end
 
-		function [coords,weights] = roi_coords(self)
+		function [coords,weights] = roi_coordinates(self)
 			% Retrive the voxel coordinates associated with each ROI
 			%
 			% Returns a cell array where the cell index is the ROI
@@ -405,7 +406,7 @@ classdef parcellation
 			%
 			% This is obtained by averaging over the MNI coordinates of
 			% all of the voxels belonging to the parcel
-			centers = cell2mat(cellfun(@mean,self.roi_coords,'UniformOutput',false)');
+			centers = cell2mat(cellfun(@mean,self.roi_coordinates,'UniformOutput',false)');
 		end
 
 	end

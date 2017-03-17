@@ -1,5 +1,5 @@
 function plot_network(self,cmat,threshold,mapping)
-	% Plot connection matrices as network with edges
+	% Plot connection matrices as network with edges (quick version)
 
 	if verLessThan('matlab','8.4')
 		fprintf(2,'Network plotting only supported on Matlab R2014b and higher\n');
@@ -24,7 +24,7 @@ function plot_network(self,cmat,threshold,mapping)
 	
 	roi_centers = zeros(self.n_parcels,3);
     
-    [coords,weights] = self.roi_coords;
+    [coords,weights] = self.roi_coordinates;
 	for j = 1:self.n_parcels
 		roi_centers(j,:) = sum(bsxfun(@times,coords{j},weights{j}))./sum(weights{j});
 	end
