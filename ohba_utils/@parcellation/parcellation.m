@@ -167,10 +167,7 @@ classdef parcellation
 
 			% Assign default labels if required
 			if isempty(labels)
-				labels = cell(self.n_parcels,1);
-				for j = 1:self.n_parcels
-					labels{j} = sprintf('ROI %d',j);
-				end
+				labels = arrayfun(@(x) sprintf('ROI %d',x),1:self.n_parcels,'UniformOutput',false);
 			else
 				assert(iscell(labels),'Manually specified labels must be a cell array of ROI names or a file name');
 				assert(isvector(labels),'Labels must be a cell vector of strings, not a matrix');
