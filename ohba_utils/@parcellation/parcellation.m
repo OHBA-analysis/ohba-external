@@ -401,9 +401,13 @@ classdef parcellation
 		function centers = roi_centers(self)
 			% Return the centre-of-gravity of each parcel
 			%
-			% This is obtained by averaging over the MNI coordinates of
+			% This is obtained by taking the weighted sum over the MNI coordinates of
 			% all of the voxels belonging to the parcel
-			centers = cell2mat(cellfun(@mean,self.roi_coordinates,'UniformOutput',false)');
+			[coords,weights] = self.roi_coordinates;
+			centers = nan(self.n_parcels,3);
+			for j = 1:self.n_parcels
+				centers(j,:) = mean(bsxfun(@times,coords{j},weights{j}));
+			end
 		end
 
 	end
