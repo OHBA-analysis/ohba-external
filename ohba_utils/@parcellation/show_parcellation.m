@@ -8,6 +8,7 @@ function show_parcellation(p)
 	axis equal
 	axis tight
 	axis vis3d
+	set(gca,'XLim',[min(p.template_coordinates(:,1)) max(p.template_coordinates(:,1))],'YLim',[min(p.template_coordinates(:,2)) max(p.template_coordinates(:,2))],'ZLim',[min(p.template_coordinates(:,3)) max(p.template_coordinates(:,3))]);
 	hold on
 
 	% Add numbers to ROI names in dropdown list
