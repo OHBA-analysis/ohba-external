@@ -67,7 +67,7 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 	roi_centers = self.roi_centers;
 	s = scatter3(roi_centers(:,1),roi_centers(:,2),roi_centers(:,3),node_vals,'o','filled','MarkerFaceColor',cmap(1,:));
 
-	p = patch('Vertices',roi_centers([from;to],:),'Faces',[1:length(from);length(from)+1:2*length(from)].','FaceColor','none','LineWidth',3,'CDataMapping','scaled','AlphaDataMapping','scaled') 
+	p = patch('Vertices',roi_centers([from;to],:),'Faces',[1:length(from);length(from)+1:2*length(from)].','FaceColor','none','LineWidth',3,'CDataMapping','scaled','AlphaDataMapping','scaled');
 	set(p,'FaceVertexCData',cmat([ind;ind]))
 
 	% Compute the percentile of the absolute value
