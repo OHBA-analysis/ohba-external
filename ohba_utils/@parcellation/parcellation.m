@@ -155,7 +155,8 @@ classdef parcellation
 				[self.resolution,self.template_fname,self.template_mask] = self.guess_template(input_mask);
 				self.template_coordinates = osl_mnimask2mnicoords(self.template_fname);
 			else
-				error('Specifying a nonstandard template not yet supported')
+				fprintf(2,'Warning - specifying a template manually has not been tested\n');
+				self.template_coordinates = osl_mnimask2mnicoords(template);
 			end
 			
 			if ndims(self.template_mask) < 3
@@ -425,101 +426,8 @@ classdef parcellation
 			end
 		end
 
-		function [spatial_res,mask_fname,mask] = guess_template(m)
-			% Given a matrix of parcellations or similar, guess and return the matching mask
-			% m could be
-			% - The spatial resolution desired (e.g. m=8)
-			% - A column vector of parcels (voxels x 1)
-			% - A matrix of parcels (voxels x parcels)
-			% - A volume (XYZ)
-			% - A volume-based parcellation (XYZ x parcels)
-			% 
-			% Return values
-			% mask - The result of reading the mask file using readnii()
-			% mask_fname - The filename for the standard mask
-			% spatial_res - The guessed spatial resolution
-
-	    
-			if isa(m,'meeg')
-				m = m(:,1,1);
-			end 
-			% Given a 4D matrix, it's probably XYZ x parcels, so just keep the first volume
-			if ndims(m) == 4
-				m = squeeze(m(:,:,:,1));
-			end
-
-			% If its a 2D matrix, its probably voxels x parcels, so just keep the first column
-			if ndims(m) == 2
-				m = m(:,1);
-			end
-
-			mask_res = [1:15];
-
-			% Commands below generate the sizes listed in this file
-			% OSLDIR = getenv('OSLDIR');
-			% mask_dim = [];
-			% mask_vox = [];
-			% for j = 1:length(mask_res)
-			% 	a=readnii(sprintf([OSLDIR '/std_masks/MNI152_T1_%dmm_brain.nii.gz'],mask_res(j)));
-			% 	mask_dim(j,:) = size(a);
-			% 	mask_vox(j) = sum(a(:)~=0);
-			% end
-
-			mask_dim = [...
-			   182   218   182;...
-			    91   109    91;...
-			    61    73    61;...
-			    46    55    46;...
-			    36    44    36;...
-			    30    36    30;...
-			    26    31    26;...
-			    23    27    23;...
-			    20    24    20;...
-			    18    22    18;...
-			    17    20    17;...
-			    15    18    15;...
-			    14    17    14;...
-			    13    16    13;...
-			    12    15    12];
-
-			mask_vox = [1827095,228453,67693,28549,14641,8471,5339,3559,2518,1821,1379,1065,833,676,544];
-
-			if numel(m) == 1
-				idx = find(mask_res == m);
-				if isempty(idx)
-					error(sprintf('No masks have the specified spatial resolution (%d mm)',m));
-				end
-			elseif size(m,2) == 1 % If column vector given
-				idx = find(mask_vox == size(m,1));
-				if isempty(idx)
-					idx = find(prod(mask_dim,2) == size(m,1));
-					if isempty(idx)
-						error('No masks have %d voxels',size(m,1));
-					end
-				end
-			else
-				idx = find(all(bsxfun(@eq,mask_dim,size(m)),2));
-				if isempty(idx)
-					size(m)			
-					error('No masks have the right dimension')
-				end
-			end
-
-			spatial_res = mask_res(idx);
-
-			if nargout > 1
-				OSLDIR = getenv('OSLDIR');
-				mask_fname = fullfile(osldir,'std_masks',['MNI152_T1_' num2str(spatial_res) 'mm_brain.nii.gz']);
-			end
-
-			if nargout > 2
-				if ~exist(mask_fname)
-					error(sprintf('Mask file could not be located: %s',mask_fname));
-				end
-				mask = readnii(mask_fname);
-			end
-		end
-
+		[spatial_res,mask_fname,mask] = guess_template(m);
+		
 	end
 
 end
