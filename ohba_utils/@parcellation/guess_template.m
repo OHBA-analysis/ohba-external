@@ -12,8 +12,10 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	% Return values
 	% spatial_res - The guessed spatial resolution
 	% mask_fname - The filename for the standard mask
-	% mask - The result of reading the mask file using readnii()
-
+	% mask - The result of reading the mask file using read_avw()
+	%
+	% Romesh Abeysuriya 2017
+	
    	% Sanitize the input
 	if isa(m,'meeg')
 		m = m(:,1,1);
@@ -38,7 +40,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	% mask_dim = [];
 	% mask_vox = [];
 	% for j = 1:length(mask_res)
-	% 	a=readnii(sprintf([OSLDIR '/std_masks/MNI152_T1_%dmm_brain.nii.gz'],mask_res(j)));
+	% 	a=read_avw(sprintf([OSLDIR '/std_masks/MNI152_T1_%dmm_brain.nii.gz'],mask_res(j)));
 	% 	mask_dim(j,:) = size(a);
 	% 	mask_vox(j) = sum(a(:)~=0);
 	% end
@@ -78,7 +80,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	[spatial_res,mask_fname] = match(m,mask_res,mask_vox,mask_dim,'MNI152_T1_%dmm_brain.nii.gz');
 	
 	if isempty(spatial_res)
-		[spatial_res,mask_fname] = match(m,ft_mask_res,ft_mask_vox,ft_mask_dim,'ft_%dmm.nii.gz');
+		[spatial_res,mask_fname] = match(m,ft_mask_res,ft_mask_vox,ft_mask_dim,'ft_%dmm_brain.nii.gz');
 	end
 
 	if isempty(spatial_res)
@@ -88,7 +90,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	mask_fname = fullfile(osldir,'std_masks',mask_fname);
 	
 	if nargout > 2
-		mask = readnii(mask_fname);
+		mask = read_avw(mask_fname);
 	end
 end
 

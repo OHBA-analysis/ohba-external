@@ -122,7 +122,7 @@ classdef parcellation
 					end
 				end
 
-				input_mask = readnii(input_mask);
+				input_mask = read_avw(input_mask);
 
 			elseif ischar(input_mask) % matlab input
 				d = load(input_mask);
@@ -357,7 +357,7 @@ classdef parcellation
 			end
 			
 			fname = self.savenii(activation);
-			fslview(fname,clim);
+			fslview(fname,clim,[],self.template_fname);
 			pause(5);
 			delete(fname)
 		end
