@@ -51,7 +51,7 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 
 	% Render the brain surface
 	f=figure('Color','w');
-	mesh = gifti(fullfile(osldir,'spm12','canonical','cortex_5124.surf.gii'));
+	mesh = gifti(fullfile(osldir,'spm12','canonical','cortex_20484.surf.gii'));
 	trisurf(mesh.faces,mesh.vertices(:,1),mesh.vertices(:,2),mesh.vertices(:,3),'facecolor',0.5*[1 1 1],'edgecolor','none','FaceAlpha',0.1,'AlphaDataMapping','direct')
 	axis equal
 	axis vis3d
@@ -65,10 +65,10 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 	set(gca,'CLim',[-1 1]*max(abs(cmat(ind)))); % Colour axis limit is symmetric and based on maximum off-diagonal of the data
 
 	roi_centers = self.roi_centers;
-	s = scatter3(roi_centers(:,1),roi_centers(:,2),roi_centers(:,3),node_vals,'o','filled','MarkerFaceColor',cmap(1,:));
-
 	p = patch('Vertices',roi_centers([from;to],:),'Faces',[1:length(from);length(from)+1:2*length(from)].','FaceColor','none','LineWidth',3,'CDataMapping','scaled','AlphaDataMapping','scaled');
 	set(p,'FaceVertexCData',cmat([ind;ind]))
+
+	s = scatter3(roi_centers(:,1),roi_centers(:,2),roi_centers(:,3),node_vals,'o','filled','MarkerFaceColor',cmap(1,:));
 
 	% Compute the percentile of the absolute value
 	amat = arrayfun(@(x) (sum(abs(cmat(ind)) < x) + 0.5)/length(ind),abs(cmat(ind)));
