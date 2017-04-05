@@ -120,8 +120,8 @@ classdef parcellation
 					if exist(label_fname)
 						labels = importdata(label_fname);
 					end
-				end
-
+                end
+                assert(logical(exist(input_mask,'file')),sprintf('Requested file "%s" could not be found',input_mask))
 				input_mask = read_avw(input_mask);
 
 			elseif ischar(input_mask) % matlab input
