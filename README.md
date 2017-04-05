@@ -6,4 +6,4 @@ Required by
 
 - GLEAN
 - HMM-MAR
-- osl2
+- osl-core
