@@ -59,10 +59,10 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 
 	axis off
 	hold on
+	set(gca,'CLim',[-1 1]*max(abs(cmat(ind)))); % Colour axis limit is symmetric and based on maximum off-diagonal of the data
+	
 	cmap = colormap(bluewhitered(256));
 	colorbar
-
-	set(gca,'CLim',[-1 1]*max(abs(cmat(ind)))); % Colour axis limit is symmetric and based on maximum off-diagonal of the data
 
 	roi_centers = self.roi_centers;
 	p = patch('Vertices',roi_centers([from;to],:),'Faces',[1:length(from);length(from)+1:2*length(from)].','FaceColor','none','LineWidth',3,'CDataMapping','scaled','AlphaDataMapping','scaled');
