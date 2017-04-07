@@ -51,8 +51,8 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 
 	% Render the brain surface
 	f=figure('Color','w');
-	mesh = gifti(fullfile(osldir,'spm12','canonical','cortex_20484.surf.gii'));
-	trisurf(mesh.faces,mesh.vertices(:,1),mesh.vertices(:,2),mesh.vertices(:,3),'facecolor',0.5*[1 1 1],'edgecolor','none','FaceAlpha',0.1,'AlphaDataMapping','direct')
+	mesh = gifti(fullfile(osldir,'spm12','canonical','cortex_5124.surf.gii'));
+	trisurf(mesh.faces,mesh.vertices(:,1),mesh.vertices(:,2),mesh.vertices(:,3),'facecolor',0.25*[1 1 1],'edgecolor','none','FaceAlpha',0.05,'AlphaDataMapping','direct')
 	axis equal
 	axis vis3d
 	axis tight
