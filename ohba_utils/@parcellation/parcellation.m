@@ -375,7 +375,11 @@ classdef parcellation
 			if ischar(data)
 				error('Input data was a string. Correct usage is ''savenii(data,fname)''')
 			end
-					
+			
+			if ndims(data) < 3
+				data = self.to_vol(data);
+			end
+
 		    [~,~,scales] = read_avw(self.template_fname);
 		    save_avw(data,fname,'f',scales);
 		    system(['fslcpgeom ' self.template_fname ' ' fname ' -d']);
