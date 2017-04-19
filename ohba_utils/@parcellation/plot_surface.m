@@ -79,7 +79,8 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
 
     axis(ax,'equal');
     axis(ax,'vis3d');
-    set(ax(1),'View', [-90 0])
+    set(ax(1),'View', [-90 0]);
+    set(ax,'CLim',[min([vl.cdata;vr.cdata]) max([vl.cdata;vr.cdata])]);
 
     arrayfun(@(x) shading(x,'interp'),ax);
     arrayfun(@(x) colorbar(x,'Location','SouthOutside'),ax);
