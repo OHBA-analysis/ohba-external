@@ -116,8 +116,13 @@ classdef parcellation
 				% See if there is a corresponding label file in the same directory
 				% Do this first because input_mask gets converted from filename to mask data
 				if isempty(labels)
-					label_fname = strrep(input_mask,'nii','txt');
-					if exist(label_fname)
+					if ~isempty(strfind(input_mask,'nii.gz'))
+						label_fname = strrep(input_mask,'nii.gz','txt');
+					elseif ~isempty(strfind(input_mask,'nii'))
+						label_fname = strrep(input_mask,'nii','txt');
+					end
+
+					if exist(label_fname,'file')
 						labels = importdata(label_fname);
 					end
                 end
