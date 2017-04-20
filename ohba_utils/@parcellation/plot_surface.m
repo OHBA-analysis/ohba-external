@@ -28,6 +28,10 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
     end
     
     niifile = p.savenii(data);
+    output_right    = [niifile '_right.func.gii'];
+    output_left     = [niifile '_left.func.gii'];
+    cl = onCleanup(@()  cellfun(@delete,{niifile,output_left,output_right})); % Enable deleting temp files even if debugging
+
     surf_right = fullfile(osldir,'std_masks','ParcellationPilot.R.midthickness.32k_fs_LR.surf.gii');
     surf_left = fullfile(osldir,'std_masks','ParcellationPilot.L.midthickness.32k_fs_LR.surf.gii');
 
@@ -44,8 +48,7 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
     end
 
 
-    output_right    = [niifile '_right.func.gii'];
-    output_left     = [niifile '_left.func.gii'];
+
 
     % Map volume to surface
     runcmd('wb_command -volume-to-surface-mapping %s %s %s -%s',niifile,surf_right,output_right,interptype)
@@ -61,14 +64,23 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
         ax = gca;
         s(1) = patch(ax,'Faces',sl.faces,'vertices',sl.vertices,'CData',[]);
         hold on
+        sg(1) = patch(ax,'Faces',sl.faces,'vertices',sl.vertices);
         s(2) = patch(ax,'Faces',sr.faces,'vertices',sr.vertices,'CData',[]);
+        sg(2) = patch(ax,'Faces',sl.faces,'vertices',sl.vertices);
+
 
     else
         set(hfig,'Position',[1 1 2 1].*get(hfig,'Position'));
         ax(1) = subplot(1,2,1);
         s(1) = patch(ax(1),'Faces',sl.faces,'vertices',sl.vertices,'CData',[]);
+        hold on
+        sg(1) = patch(ax(1),'Faces',sl.faces,'vertices',sl.vertices);
+
         ax(2) = subplot(1,2,2);
         s(2) = patch(ax(2),'Faces',sr.faces,'vertices',sr.vertices,'CData',[]);
+        hold on
+        sg(2) = patch(ax(2),'Faces',sr.faces,'vertices',sr.vertices);
+
         lrotate = addlistener(ax(1),'View','PostSet',@(a,b,c) set(ax(2),'View',[-1 1].*get(ax(1),'View')));
         rrotate = addlistener(ax(2),'View','PostSet',@(a,b,c) set(ax(1),'View',[-1 1].*get(ax(2),'View')));
 
@@ -76,6 +88,11 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
 
     set(s(1),'FaceVertexCData',vl.cdata)
     set(s(2),'FaceVertexCData',vr.cdata)
+
+    set(sg(1),'FaceVertexCData',0.4*ones(size(vl.cdata,1),3));
+    set(sg(2),'FaceVertexCData',0.4*ones(size(vr.cdata,1),3));
+    set(sg(1),'FaceVertexAlphaData',+~isfinite(vl.cdata),'FaceAlpha','interp','AlphaDataMapping','none');
+    set(sg(2),'FaceVertexAlphaData',+~isfinite(vr.cdata),'FaceAlpha','interp','AlphaDataMapping','none');
 
     axis(ax,'equal');
     axis(ax,'vis3d');
@@ -87,6 +104,3 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
     axis(ax,'off');
     rotate3d(hfig,'on');
 
-    delete(niifile)
-    delete(output_left)
-    delete(output_right)
