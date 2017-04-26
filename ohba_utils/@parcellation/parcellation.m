@@ -60,7 +60,7 @@ classdef parcellation
 			% INPUTS
 			%	- input_mask specifying the parcels themselves
 			%	- labels specifying the ROI names (one for each parcel)
-			% 	- template specifying the voxel coordinates (currently custom templates not supported, only parcellations based on OSL standard masks)
+			% 	- template specifying the standard mask (normally automatically inferred - if supplied, it must be the name of a .nii file)
 			%
 			% INPUT_MASK formats that can be loaded
 			% - XYZ x Parcels 
@@ -160,7 +160,10 @@ classdef parcellation
 				[self.resolution,self.template_fname,self.template_mask] = self.guess_template(input_mask);
 				self.template_coordinates = osl_mnimask2mnicoords(self.template_fname);
 			else
-				fprintf(2,'Warning - specifying a template manually has not been tested\n');
+				assert(ischar(template) && ~isempty(strfind(template,'nii')),'Template must be a .nii file')
+				assert(logical(exist(template,'file')),sprintf('Requested file "%s" could not be found',template))
+				self.template_fname = template;
+				self.template_mask = read_avw(template);
 				self.template_coordinates = osl_mnimask2mnicoords(template);
 			end
 			
