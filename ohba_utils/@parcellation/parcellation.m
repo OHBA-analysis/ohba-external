@@ -165,6 +165,7 @@ classdef parcellation
 				self.template_fname = template;
 				self.template_mask = read_avw(template);
 				self.template_coordinates = osl_mnimask2mnicoords(template);
+				self.resolution = str2double(runcmd('fslval %s pixdim1',template));
 			end
 			
 			if ndims(self.template_mask) < 3
