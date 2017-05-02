@@ -272,7 +272,7 @@ classdef parcellation
 				end
 				dat2 = d2;
 			elseif ~size(dat2,1) == self.n_voxels
-				error('Unsupported dimension')
+				error(sprintf('Unsupported dimension - one dimension must have size %d (number of voxels) or %d (number of parcels)',self.n_voxels,self.n_parcels));
 			end
 
 			dat4 = matrix2vols(dat2,self.template_mask);
