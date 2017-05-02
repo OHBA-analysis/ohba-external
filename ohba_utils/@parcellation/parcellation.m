@@ -203,24 +203,26 @@ classdef parcellation
 			if ndims(mask) == 3
 				all_integers = all(mod(self.weight_mask(:),1)==0); % Do we only have integers?
 				vals = unique(self.weight_mask(:));
-				self.is_weighted = ~(all_integers && all(diff(vals) == 1)); % If we read in 3 dimensions, continuous integers mean interpreted parcel index rather than weight
+				is_weighted = ~(all_integers && all(diff(vals) == 1)); % If we read in 3 dimensions, continuous integers mean interpreted parcel index rather than weight
 				
-				if ~self.is_weighted
+				if ~is_weighted
 					mask = self.integers_to_masks(mask);
 				end
 			elseif ndims(mask) == 4
-				self.is_weighted = ~all(ismember(mask(:),[0 1])); % If we read in 4 dimensions, then any non-binary value means its weighted
+				is_weighted = ~all(ismember(mask(:),[0 1])); % If we read in 4 dimensions, then any non-binary value means its weighted
 			end
 
 			% Finally, check if overlapping
 			parcels_per_voxel = sum(mask~=0,4);
 			if max(parcels_per_voxel(:)) > 1
-				self.is_overlapping = true;
+				is_overlapping = true;
 			else
-				self.is_overlapping = false;
+				is_overlapping = false;
 			end
 
 			self.weight_mask = mask;
+			self.is_weighted = is_weighted;
+			self.is_overlapping = is_overlapping;
 		end
 
 	    function parcelflag = parcelflag(self,binarize)
