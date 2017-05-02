@@ -147,23 +147,22 @@ classdef parcellation
 					end
 				end
 			elseif length(input_mask) == 1 % Can enter a spatial resolution to retrieve the whole brain mask i.e. 1 parcel
-				[~,self.template_fname,self.template_mask] = self.guess_template(input_mask);
-				input_mask = ones(sum(self.template_mask(:)>0),1);
+				[~,~,img] = self.guess_template(input_mask);
+				input_mask = +logical(img);
 			end
 
 			% Guess and load template if required
 			if nargin < 3 || isempty(template) 
 				[self.resolution,self.template_fname,self.template_mask] = self.guess_template(input_mask);
-				self.template_coordinates = osl_mnimask2mnicoords(self.template_fname);
 			else
 				assert(ischar(template) && ~isempty(strfind(template,'nii')),'Template must be a .nii file')
 				assert(logical(exist(template,'file')),sprintf('Requested file "%s" could not be found',template))
 				self.template_fname = template;
 				self.template_mask = read_avw(template);
-				self.template_coordinates = osl_mnimask2mnicoords(template);
 				self.resolution = str2double(runcmd('fslval %s pixdim1',template));
 			end
-			
+			self.template_coordinates = osl_mnimask2mnicoords(self.template_fname);
+
 			if ndims(self.template_mask) < 3
 				[~,~,mask_1] = self.guess_template(input_mask); % If user gave their own template on a standard grid size
 				self.template_mask = matrix2vols(self.template_mask,mask_1);
