@@ -250,19 +250,29 @@ classdef parcellation
 			%
 			% Commonly used to produce a matrix suitable for use with fslview
 
-			if (numel(dat2) == numel(self.weight_mask)) && all(size(dat2) == size(self.weight_mask))
+			% If the user passed in an XYZ matrix already, check it is a valid volume and return, otherwise throw an error
+			s = size(dat2);
+			if ndims(s) > 2 
+				assert(all(s(1:3) == size(self.template_mask)),sprintf('Passed in a matrix with size (%dx%dx%d) but this does not match the template size (%dx%dx%d)',s(1),s(2),s(3),size(self.template_mask,1),size(self.template_mask,2),size(self.template_mask,3)));
 				dat4 = dat2;
 				return
 			end
 
-			% Ensure matrix is in correct orientation
-			% If matrix is 
-			if size(dat2,1) ~= self.n_voxels && size(dat2,1) ~= self.n_parcels % If the first dimension is neither n_voxels nor n_parcels
-				dat2 = dat2.';
+			% Priority is Vox x Frames or Parcels x Frames, but if we get
+			% Frames x Vox then transpose if Frames ~= n_parcels and if
+			% we get Frames x Parcels then transpose if Frames ~= n_voxels
+			% The first if statement already catches the exceptions above
+			if s(1) ~= self.n_voxels && s(1) ~= self.n_parcels
+				if s(2) == self.n_voxels || s(2) == self.n_parcels
+					dat2 = dat2.';
+				else
+					error(sprintf('Unsupported size (%dx%d) - one dimension must have size %d (number of voxels) or %d (number of parcels).',s(1),s(2),self.n_voxels,self.n_parcels));
+				end
 			end
 
+			% If we have parcels as the first dimension, we need to expand it to voxels
+			% (only works if binarized as otherwise don't assume how to expand with weights)
 			if size(dat2,1) == self.n_parcels
-				% This means we need to expand to voxels first
 				d2 = nan(self.n_voxels,size(dat2,2));
 				m = self.value_vector; % Map voxels to parcels
 				for k = 1:size(dat2,2)
@@ -271,10 +281,8 @@ classdef parcellation
 					end
 				end
 				dat2 = d2;
-			elseif ~size(dat2,1) == self.n_voxels
-				error(sprintf('Unsupported dimension - one dimension must have size %d (number of voxels) or %d (number of parcels)',self.n_voxels,self.n_parcels));
 			end
-
+			
 			dat4 = matrix2vols(dat2,self.template_mask);
 		end
 
