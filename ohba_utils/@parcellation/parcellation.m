@@ -74,8 +74,10 @@ classdef parcellation
 			% - Vox x 1 
 			% - XYZ x 1
 			% - nii file name (nifti file with one of the above formats)
-			% - mat file name (containing variables 'mask' for input mask and 'long names' for labels)
+			% - mat file name (containing variables 'mask' for input mask and 'labels' for labels)
+			%
 			% See set.weight_mask for how input matrix is reshaped and analyzed
+			% Note that the input mask will be clipped to the template (a warning will be shown if this is occurs)
 			%
 			% LABELS formats that can be loaded
 			% - Cell array of strings
@@ -86,7 +88,6 @@ classdef parcellation
 			% - If a .nii file was loaded, looking for a .txt file with the same file name
 			% - Otherwise, placeholder labels 'ROI 1', 'ROI 2' etc. will be generated
 			
-			osldir = getenv('OSLDIR');
 			if isempty(osldir)
 				error('OSL must be initialized because the OSL standard masks are used as templates for parcellations');
 			end
@@ -139,21 +140,10 @@ classdef parcellation
 				d = load(input_mask);
 				input_mask = d.mask;
 
-				% Support legacy files that store parcellations as cell array of ROI coordinates
-				% This should be removable in the near future
-				if isfield(d,'roi_coords') 
-					input_mask = zeros(size(d.mask,1),1);
-					for j = 1:length(d.roi_coords)
-						input_mask(ismember(d.mask,d.roi_coords{j},'rows')) = j;
-					end
-				end
-
 				% If no label file is provided, try and get the labels from the .mat file
 				if isempty(labels)
 					if isfield(d,'labels')
 						labels = d.labels;
-					elseif isfield(d,'long_names')
-						labels = d.long_names;
 					end
 				end
 			elseif length(input_mask) == 1 % Can enter a spatial resolution to retrieve the whole brain mask i.e. 1 parcel
@@ -185,9 +175,9 @@ classdef parcellation
 			if isempty(labels)
 				labels = arrayfun(@(x) sprintf('ROI %d',x),1:self.n_parcels,'UniformOutput',false);
 			else
-				assert(iscell(labels),'Manually specified labels must be a cell array of ROI names or a file name');
-				assert(isvector(labels),'Labels must be a cell vector of strings, not a matrix');
-				assert(length(labels)==self.n_parcels,sprintf('Must have one manually specified label for each parcel (%d provided, %d required)',length(labels),self.n_parcels));
+				assert(iscell(labels),'parcellation:invalid_labels','Manually specified labels must be a cell array of ROI names or a file name');
+				assert(isvector(labels),'parcellation:invalid_labels','Labels must be a cell vector of strings, not a matrix');
+				assert(length(labels)==self.n_parcels,'parcellation:invalid_labels',sprintf('Must have one manually specified label for each parcel (%d provided, %d required)',length(labels),self.n_parcels));
 			end
 
 			self.labels = labels(:);
@@ -200,22 +190,47 @@ classdef parcellation
 			% - XYZ x 1 (3D matrix, unweighted non-overlapping parcel if integers OR single weighted non-overlapping parcel if values are not integers)
 			% - XYZ x Parcels (4D matrix, unweighted if all values 0 or 1, overlapping if multiple assingmnet)
 
-			% First, convert Vox x 1 or Vox x Parcels to XYZ x 1 or XYZ x Parcels
+			% First check the mask is valid
 
+			% If given a 1D or 2D matrix, make sure volumns correspond to voxels
+			if isvector(mask)
+				mask = mask(:);
+			elseif ndims(mask) == 2 && size(mask,1) ~= self.n_voxels && size(mask,2) == self.n_voxels
+				mask = mask.';
+			end
+
+			% If given a 1D or 2D matrix, make sure the number of voxels is correct
+			if ndims(mask) <= 2
+				assert(size(mask,1) == self.n_voxels,'parcellation:invalid_mask',sprintf('Number of voxels in parcellation (%d) does not match the mask (%d)',size(mask,1),self.n_voxels));
+			else
+				% If given 3D or 4D matrix, make sure that the parcel does not have any voxels that aren't part of the mask
+				s = size(mask);
+				assert(all(s(1:3) == size(self.template_mask)),'parcellation:invalid_mask',sprintf('Parcellation size (%dx%dx%d) is different to template size (%dx%dx%d)',s(1),s(2),s(3),size(self.template_mask,1),size(self.template_mask,2),size(self.template_mask,3)));
+			end
+
+			% Expand all masks to XYZ 
 			if ndims(mask) < 3
 				mask = matrix2vols(mask,self.template_mask);
 			end
-			
+
 			if ndims(mask) == 3
 				all_integers = all(mod(self.weight_mask(:),1)==0); % Do we only have integers?
 				vals = unique(self.weight_mask(:));
 				is_weighted = ~(all_integers && all(diff(vals) == 1)); % If we read in 3 dimensions, continuous integers mean interpreted parcel index rather than weight
 				
+				% Expand XYZ x 1 to XYZ x Parcels if we are confident that this is not a single weighted parcel
 				if ~is_weighted
 					mask = self.integers_to_masks(mask);
 				end
 			elseif ndims(mask) == 4
 				is_weighted = ~all(ismember(mask(:),[0 1])); % If we read in 4 dimensions, then any non-binary value means its weighted
+			end
+
+			% Clip the mask to the template
+			to_remove = bsxfun(@and,logical(mask),~logical(self.template_mask)); % Indices of voxels to remove from the parcellation because they are outside the mask
+			if any(to_remove(:))
+				fprintf(2,'Parcellation is being clipped to template\n');
+				mask(to_remove) = 0;
 			end
 
 			% Finally, check if overlapping
@@ -253,7 +268,7 @@ classdef parcellation
 			% If the user passed in an XYZ matrix already, check it is a valid volume and return, otherwise throw an error
 			s = size(dat2);
 			if ndims(s) > 2 
-				assert(all(s(1:3) == size(self.template_mask)),sprintf('Passed in a matrix with size (%dx%dx%d) but this does not match the template size (%dx%dx%d)',s(1),s(2),s(3),size(self.template_mask,1),size(self.template_mask,2),size(self.template_mask,3)));
+				assert(all(s(1:3) == size(self.template_mask)),'parcellation:to_vol:invalid_size',sprintf('Passed in a matrix with size (%dx%dx%d) but this does not match the template size (%dx%dx%d)',s(1),s(2),s(3),size(self.template_mask,1),size(self.template_mask,2),size(self.template_mask,3)));
 				dat4 = dat2;
 				return
 			end
@@ -266,7 +281,7 @@ classdef parcellation
 				if s(2) == self.n_voxels || s(2) == self.n_parcels
 					dat2 = dat2.';
 				else
-					error(sprintf('Unsupported size (%dx%d) - one dimension must have size %d (number of voxels) or %d (number of parcels).',s(1),s(2),self.n_voxels,self.n_parcels));
+					error('parcellation:to_vol:invalid_size',sprintf('Unsupported size (%dx%d) - one dimension must have size %d (number of voxels) or %d (number of parcels).',s(1),s(2),self.n_voxels,self.n_parcels));
 				end
 			end
 
@@ -282,7 +297,7 @@ classdef parcellation
 				end
 				dat2 = d2;
 			end
-			
+
 			dat4 = matrix2vols(dat2,self.template_mask);
 		end
 
@@ -398,7 +413,7 @@ classdef parcellation
 			end
 
 			if ischar(data)
-				error('Input data was a string. Correct usage is ''savenii(data,fname)''')
+				error('parcellation:savenii:invalid_data','Input data was a string. Correct usage is ''savenii(data,fname)''')
 			end
 			
 			if ndims(data) < 3
