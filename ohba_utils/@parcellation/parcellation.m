@@ -33,10 +33,16 @@ classdef parcellation
 
 	properties
 	    weight_mask % XYZ x Parcels matrix of parcel weights
-	    template_mask % Values for each voxel in the template
-	    template_coordinates % MNI coordinates for each point in the mask
-	    template_fname % Filename of standard template, useful for copying qform/sform matrix 
 	    labels % Names of each ROI in the parcellation
+	end
+
+	% To maintain consistency with the template mask on disk, once the parcellation object
+	% is initialized, the template mask can never be changed. This makes manipulating
+	% the weight mask in memory much more reliable
+	properties(SetAccess = immutable)
+		template_mask % Values for each voxel in the template - if this is edited in memory, then the version on disk could be different
+		template_coordinates % MNI coordinates for each point in the mask
+		template_fname % Filename of standard template, useful for copying qform/sform matrix 
 	end
 
 	% These properties are dependent on the weight mask, so are only ever set indirectly
