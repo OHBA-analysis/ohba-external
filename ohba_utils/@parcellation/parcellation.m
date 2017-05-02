@@ -428,8 +428,14 @@ classdef parcellation
 
 	methods (Static)
 		function d4 = integers_to_masks(d3)
-			% Input - d3 = XYZ x 1 where all values are integers
-			% Output - d4 = XYZ x n_parcels (binary parcellation)
+			% Convert a 3D parcellation where value indicates parcel number
+			% to a 4D parcellation
+			% 
+			% INPUTS
+			% - d3 = XYZ x 1 where all values are integers
+			% OUTPUTS
+			% - d4 = XYZ x n_parcels (binary parcellation)
+			
 			assert(ndims(d3) == 3,'Input must be XYZ x 1')
 			assert(all(mod(d3(:),1)==0),'Input must only contain integers'); 
 			n_parcels = max(d3(:));
