@@ -67,6 +67,8 @@ classdef parcellation
 			%	- input_mask specifying the parcels themselves
 			%	- labels specifying the ROI names (one for each parcel)
 			% 	- template specifying the standard mask (normally automatically inferred - if supplied, it must be the name of a .nii file)
+			%	  A nii file is required rather than just a matrix because the xform and other header information is required to be able
+			% 	  to write nii files via the parcellation object
 			%
 			% INPUT_MASK formats that can be loaded
 			% - XYZ x Parcels 
@@ -161,6 +163,7 @@ classdef parcellation
 				self.template_mask = read_avw(template);
 				self.resolution = str2double(runcmd('fslval %s pixdim1',template));
 			end
+			
 			self.template_coordinates = osl_mnimask2mnicoords(self.template_fname);
 
 			if ndims(self.template_mask) < 3
@@ -189,8 +192,17 @@ classdef parcellation
 			% - XYZ x 1 (3D matrix, unweighted non-overlapping parcel if integers OR single weighted non-overlapping parcel if values are not integers)
 			% - XYZ x Parcels (4D matrix, unweighted if all values 0 or 1, overlapping if multiple assingmnet)
 
-			% First check the mask is valid
+			% self.template_coordinates is guaranteed to be set in the constructor
+			% and is assigned prior to self.weight_mask. Therefore, if we are here 
+			% and self.template_coordinates is empty, this function is being called
+			% as part of the default loadobj() i.e. loading from disk. In which case,
+			% it should be fine to directly use the mask 
+			if isempty(self.template_coordinates)
+				self.weight_mask = mask;
+				return
+			end
 
+			% First check the mask is valid
 			% If given a 1D or 2D matrix, make sure volumns correspond to voxels
 			if isvector(mask)
 				mask = mask(:);
