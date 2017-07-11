@@ -366,7 +366,7 @@ classdef parcellation
 			[~,assignments] = max(p,[],2);
 			assignments(all(p==0,2)) = 0; % Voxels x 1 with value indicating parcel
 			assignment_vol = self.to_vol(assignments); % XYZ x 1 with values indicating parcel
-			weight_mask = self.integers_to_masks(assignment_vol); % XYZ x n_parcels
+			weight_mask = self.integers_to_masks(assignment_vol,self.n_parcels); % XYZ x n_parcels
 		end
 
 		% PROPERTIES
@@ -412,6 +412,37 @@ classdef parcellation
 			pause(5);
 			delete(fname)
 		end
+
+		function fsleyes(self,activation,clim)
+			% Display parcellation or parcel activity using fsleyes
+			% 
+			% INPUTS
+			% - activation - Activation input in volume format or format supported by p.to_vol()
+			% 				 By default, the weight mask is used
+			% - clim - Colour axis limit, uses fsleyes default if not specified (auto scaled)
+			% 
+			% Other examples
+			%	p.fsleyes() - Shows each parcel as a separate volume
+			%   p.fsleyes(p.value_vector) - Shows parcellation as a single volume
+
+			if nargin < 2 || isempty(activation) 
+				activation = self.weight_mask;
+			end
+
+			if ndims(activation) < 3
+				activation = self.to_vol(activation);
+			end
+
+			if nargin < 3 || isempty(clim) 
+				clim = [min(activation(:)) max(activation(:))];
+			end
+			
+			fname = self.savenii(activation);
+			fsleyes(fname,clim,[],self.template_fname);
+			pause(5);
+			delete(fname)
+		end
+
 
 		function output_fname = savenii(self,data,fname)
 			% Save a nii file, with qform/xform copied from the original mask file
@@ -469,7 +500,7 @@ classdef parcellation
 	end
 
 	methods (Static)
-		function d4 = integers_to_masks(d3)
+		function d4 = integers_to_masks(d3,n_parcels)
 			% Convert a 3D parcellation where value indicates parcel number
 			% to a 4D parcellation
 			% 
@@ -480,7 +511,12 @@ classdef parcellation
 			
 			assert(ndims(d3) == 3,'Input must be XYZ x 1')
 			assert(all(mod(d3(:),1)==0),'Input must only contain integers'); 
-			n_parcels = max(d3(:));
+			
+            % If number of parcels is not specified, infer from data
+            if nargin < 2 || isempty(n_parcels)
+                n_parcels = max(d3(:));
+            end
+            
 			d4 = zeros([size(d3) n_parcels]);
 			for j = 1:n_parcels
 				d4(:,:,:,j) = d3 == j;
