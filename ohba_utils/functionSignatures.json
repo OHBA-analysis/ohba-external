@@ -1,0 +1,5 @@
+{"parcellation":
+{
+ "inputs":   [{"name":"input_mask","type":"filepath=*.nii,*.gz"}]
+}
+}
