@@ -443,6 +443,25 @@ classdef parcellation
 			delete(fname)
 		end
 
+		function o = osleyes(self,activation,clim)
+			if nargin < 2 || isempty(activation) 
+				activation = self.weight_mask;
+			end
+
+			if ndims(activation) < 3
+				activation = self.to_vol(activation);
+			end
+
+			if nargin < 3 || isempty(clim) 
+				clim = [min(activation(:)) max(activation(:))];
+			end
+			
+			fname = self.savenii(activation);
+			o = osleyes({self.template_fname,fname},{'bone','autumn'},{[],clim});
+			pause(5);
+			delete(fname)
+		end
+
 
 		function output_fname = savenii(self,data,fname)
 			% Save a nii file, with qform/xform copied from the original mask file
