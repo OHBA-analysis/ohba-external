@@ -136,7 +136,7 @@ classdef parcellation
 					end
                 end
                 assert(logical(exist(input_mask,'file')),sprintf('Requested file "%s" could not be found',input_mask))
-				input_mask = read_avw(input_mask);
+				input_mask = nii.load(input_mask);
 
 			elseif ischar(input_mask) % matlab input
 				d = load(input_mask);
@@ -160,8 +160,8 @@ classdef parcellation
 				assert(ischar(template) && ~isempty(strfind(template,'nii')),'Template must be a .nii file')
 				assert(logical(exist(template,'file')),sprintf('Requested file "%s" could not be found',template))
 				self.template_fname = template;
-				self.template_mask = read_avw(template);
-				self.resolution = str2double(runcmd('fslval %s pixdim1',template));
+				[self.template_mask,res] = nii.load(template);
+				self.resolution = res(1);
 			end
 			
 			self.template_coordinates = osl_mnimask2mnicoords(self.template_fname);
@@ -466,7 +466,7 @@ classdef parcellation
 		function output_fname = savenii(self,data,fname)
 			% Save a nii file, with qform/xform copied from the original mask file
 			if nargin < 3 || isempty(fname) 
-				fname = tempname('.');
+				fname = [tempname('.') '.nii.gz'];
 			end
 
 			if nargin < 2 || isempty(data) 
@@ -481,10 +481,8 @@ classdef parcellation
 				data = self.to_vol(data);
 			end
 
-		    [~,~,scales] = read_avw(self.template_fname);
-		    save_avw(data,fname,'f',scales);
-		    system(['fslcpgeom ' self.template_fname ' ' fname ' -d']);
-		    output_fname = [fname '.nii.gz'];
+			[~,res,xform] = nii.load(self.template_fname);
+			output_fname = nii.save(data,res,xform,fname);
 
 		end
 
