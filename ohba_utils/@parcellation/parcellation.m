@@ -458,7 +458,7 @@ classdef parcellation
 			
 			fname = self.savenii(activation);
 			o = osleyes({self.template_fname,fname},{'bone','autumn'},{[],clim});
-			pause(5);
+			pause(2);
 			delete(fname)
 		end
 
