@@ -1,4 +1,4 @@
-function resample(input_nii,output_fname,output_mask,varargin)
+function output_fname = resample(input_nii,output_fname,output_mask,varargin)
     % Resample a nii file onto a different spatial grid using Matlab interpolation
     %
     % INPUTS
@@ -62,7 +62,7 @@ function resample(input_nii,output_fname,output_mask,varargin)
         output_vol(output_vol < 0) = 0;
     end
 
-    nii.save(output_vol,output_step,output_xform,output_fname);
+    nii.save(output_vol,abs(output_step),output_xform,output_fname);
 
 function [xg,yg,zg,vol,xform,step] = load_nii_vol(fname,flip)
     % Read the input nii file, and construct nd arrays for the spatial coordinates
