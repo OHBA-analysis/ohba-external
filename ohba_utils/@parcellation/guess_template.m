@@ -12,7 +12,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	% Return values
 	% spatial_res - The guessed spatial resolution
 	% mask_fname - The filename for the standard mask
-	% mask - The result of reading the mask file using read_avw()
+	% mask - The result of reading the mask file using nii.load()
 	%
 	% Romesh Abeysuriya 2017
 	
@@ -40,7 +40,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	% mask_dim = [];
 	% mask_vox = [];
 	% for j = 1:length(mask_res)
-	% 	a=read_avw(sprintf([OSLDIR '/std_masks/MNI152_T1_%dmm_brain.nii.gz'],mask_res(j)));
+	% 	a=nii.load(sprintf([OSLDIR '/std_masks/MNI152_T1_%dmm_brain.nii.gz'],mask_res(j)));
 	% 	mask_dim(j,:) = size(a);
 	% 	mask_vox(j) = sum(a(:)~=0);
 	% end
@@ -90,7 +90,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	mask_fname = fullfile(osldir,'std_masks',mask_fname);
 	
 	if nargout > 2
-		mask = read_avw(mask_fname);
+		mask = nii.load(mask_fname);
 	end
 end
 
