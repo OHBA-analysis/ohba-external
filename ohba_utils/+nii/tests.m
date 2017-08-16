@@ -13,27 +13,27 @@ p = parcellation('dk_cortical.nii.gz');
 p = p.remove_parcels(11:p.n_parcels);
 p = p.merge_parcels({[1:10]});
 f = p.savenii(p.weight_mask,'example_mask.nii.gz');
-osl_plot_nii(f)
+osleyes(f)
 
 % Test saving onto standard mask
 activation = randn(p.n_voxels,3); % Going to save out 3 volumes
 nii.quicksave(activation,'quicksave_test');
-osl_plot_nii('quicksave_test.nii.gz')
+osleyes('quicksave_test.nii.gz')
 
 % Test interpolating it
 nii.quicksave(activation,'quicksave_test_interp',struct('output_spat_res',2));
-osl_plot_nii({'quicksave_test.nii.gz','quicksave_test_interp.nii.gz'})
+osleyes({'quicksave_test.nii.gz','quicksave_test_interp.nii.gz'})
 
 % Test interpolating using old syntax
 delete('quicksave_test_interp.nii.gz')
 nii.quicksave(activation,'quicksave_test_interp',8,2,'linear');
-osl_plot_nii({'quicksave_test.nii.gz','quicksave_test_interp.nii.gz'})
+osleyes({'quicksave_test.nii.gz','quicksave_test_interp.nii.gz'})
 
 % Save onto the specific mask
 n = sum(p.weight_mask(:)>0);
 activation = randn(n,3); % Going to save out 3 volumes
 nii.quicksave(activation,'quicksave_test',struct('mask_fname','example_mask.nii.gz'));
-osl_plot_nii('quicksave_test.nii.gz')
+osleyes('quicksave_test.nii.gz')
 
 % Check that tres is correct
 nii.quicksave(activation,'quicksave_test',struct('mask_fname','example_mask.nii.gz','tres',5.2));

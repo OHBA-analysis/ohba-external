@@ -9,41 +9,30 @@ function fname = save(vol,res,xform,fname)
 	% The NIFTI toolbox will set sformcode=1 and nii.load() will display a warning
 	% if this is the case, to indicate the information may be missing
 	%
-	% Could use osl_load_nii to get res and xform from a standard mask
+	% Resolution can be specified as a scalar, which is used for all 3 spatial
+	% dimensions, or as a vector that gets inserted into the NIFTI header pixdim
+	% e.g. [8 8 8] or [8 8 8 1] or longer
+	%
+	% Output will automatically have '.nii.gz' added to the extension if not provided
+	% and this extension will be included in the returned fname. That is, the return
+	% value of this function reflects what is actually written to disk
 	%
 	% Romesh Abeysuriya 2017
-	
-	% Resolution can be specified in 3 ways
-	% - Single number = same in all dimensions, with time resolution of 1
-	% - 3 numbers, different in all dimensions, time resolution of 1
-	% - 4 numbers, complete resolution specification
-	
-	% Possible output filenames
-	% - 'fname'
-	% - 'fname.nii'
-	% - 'fname.nii.gz'
-	if isempty(strfind(fname,'.nii'))
-		fname = [fname '.nii.gz'];
-	elseif isempty(strfind(fname,'.gz'))
-		fname = [fname '.gz'];
-	end
 
-	switch length(res)
-		case 1
-			r = [res res res];
-		case 3
-			r = [res];
-		case 4
-			r = res(1:3);
-		otherwise
-			error('Unknown resolution - should be 1, 3, or 4 elements long');
+
+    fname = strtrim(fname);
+    [pathstr,fname,ext] = fileparts(fname);
+    if isempty(ext) || strcmp(ext,'.nii')
+        ext = '.nii.gz';
+    end
+    fname = fullfile(pathstr,[fname,ext]);
+
+    if length(res) == 1
+    	res = [res res res];
     end
 
-    nii = make_nii(vol,r);
-
-    if length(res) > 3
-    	nii.hdr.dime.pixdim(1+(1:length(res))) = res;
-    end
+    nii = make_nii(vol,res(1:3)); % Call make_nii with the first part of the resolution
+	nii.hdr.dime.pixdim(1+(1:length(res))) = res;
 
     if ~isempty(xform)
     	assert(all(size(xform)==[4 4]),'xform must be a 4x4 matrix')
@@ -54,6 +43,7 @@ function fname = save(vol,res,xform,fname)
     	nii.hdr.hist.srow_z = xform(3,:);
     else
     	fprintf(2,'Warning - saving a NIFTI file without xform matrix is not generally recommended\n')
+    	dbstack
     end
 
     save_nii(nii,fname);

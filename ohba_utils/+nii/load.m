@@ -6,10 +6,11 @@ function [vol,res,xform] = load(fname)
 	%
 	% Romesh Abeysuriya 2017
 	assert(ischar(fname),'Input file name must be a string')
+    fname = strtrim(fname);
 	assert(logical(exist(fname,'file')),sprintf('Requested file "%s" could not be found',fname))
 
 	nii = load_untouch_nii(fname); % Note that the volume returned by load_untouch_nii corresponds to the volume returned by FSL's read_avw
-	vol = nii.img;
+	vol = double(nii.img);
 	res = nii.hdr.dime.pixdim(2:5);
 
 	if nii.hdr.hist.sform_code == 0 &&  nii.hdr.hist.qform_code == 0
