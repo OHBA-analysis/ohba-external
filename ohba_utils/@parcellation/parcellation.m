@@ -299,7 +299,7 @@ classdef parcellation
 			% If we have parcels as the first dimension, we need to expand it to voxels
 			% (only works if binarized as otherwise don't assume how to expand with weights)
 			if size(dat2,1) == self.n_parcels
-				d2 = nan(self.n_voxels,size(dat2,2));
+				d2 = zeros(self.n_voxels,size(dat2,2));
 				m = self.value_vector; % Map voxels to parcels
 				for k = 1:size(dat2,2)
 					for j = 1:self.n_parcels
