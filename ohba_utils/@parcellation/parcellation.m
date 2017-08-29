@@ -169,8 +169,8 @@ classdef parcellation
 			if ndims(self.template_mask) < 3
 				[~,~,mask_1] = self.guess_template(input_mask); % If user gave their own template on a standard grid size
 				self.template_mask = matrix2vols(self.template_mask,mask_1);
-			end
-
+            end
+    
 			self.weight_mask = input_mask;
 
 			% Assign default labels if required
@@ -225,8 +225,8 @@ classdef parcellation
 			end
 
 			if ndims(mask) == 3
-				all_integers = all(mod(self.weight_mask(:),1)==0); % Do we only have integers?
-				vals = unique(self.weight_mask(:));
+				all_integers = all(mod(mask(:),1)==0); % Do we only have integers?
+				vals = unique(mask(:));
 				is_weighted = ~(all_integers && all(diff(vals) == 1)); % If we read in 3 dimensions, continuous integers mean interpreted parcel index rather than weight
 				
 				% Expand XYZ x 1 to XYZ x Parcels if we are confident that this is not a single weighted parcel
@@ -443,22 +443,17 @@ classdef parcellation
 			delete(fname)
 		end
 
-		function o = osleyes(self,activation,clim)
+		function o = osleyes(self,activation,options)
+			if nargin < 3 || isempty(options) 
+				options = struct;
+			end
+			
 			if nargin < 2 || isempty(activation) 
 				activation = self.weight_mask;
 			end
-
-			if ndims(activation) < 3
-				activation = self.to_vol(activation);
-			end
-
-			if nargin < 3 || isempty(clim) 
-				clim = [];
-			end
 			
 			fname = self.savenii(activation);
-			o = osleyes({self.template_fname,fname},{[],clim},[]);
-			pause(2);
+			o = osleyes({self.template_fname,fname},options);
 			delete(fname)
 		end
 
