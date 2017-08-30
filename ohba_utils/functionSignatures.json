@@ -1,5 +1,5 @@
-{"parcellation":
 {
- "inputs":   [{"name":"input_mask","type":"filepath=*.nii,*.gz"}]
-}
+"parcellation":{"inputs":[{"name":"input_mask","type":"filepath=*.nii,*.gz"}]},
+"nii.load":{"inputs":[{"name":"fname","type":"filepath=*.nii,*.gz"}]},
+"nii.resample":{"inputs":[{"name":"input_nii","type":"filepath=*.nii,*.gz"}]}
 }
