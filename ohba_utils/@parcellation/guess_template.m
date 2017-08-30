@@ -84,7 +84,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	end
 
 	if isempty(spatial_res)
-		error('No masks have the correct spatial resolution');
+		error('osl:parcellation:no_matching_mask','No masks have the correct spatial resolution');
 	end
 
 	mask_fname = fullfile(osldir,'std_masks',mask_fname);
