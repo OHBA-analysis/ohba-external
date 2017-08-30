@@ -10,6 +10,7 @@ function [vol,res,xform] = load(fname)
 	assert(logical(exist(fname,'file')),sprintf('Requested file "%s" could not be found',fname))
 
 	nii = load_untouch_nii(fname); % Note that the volume returned by load_untouch_nii corresponds to the volume returned by FSL's read_avw
+	nii = scale_image(nii);
 	vol = double(nii.img);
 	res = nii.hdr.dime.pixdim(2:5);
 
@@ -40,3 +41,15 @@ function [vol,res,xform] = load(fname)
 		xform(2,:) = [R(2,:)*nii.hdr.dime.pixdim(3) nii.hdr.hist.qoffset_y];
 		xform(3,:) = [R(3,:)*nii.hdr.dime.pixdim(1)*nii.hdr.dime.pixdim(4) nii.hdr.hist.qoffset_z];
     end
+
+
+function nii = scale_image(nii)
+	% Apply the value scaling from xform_nii.m without the transformations
+	if nii.hdr.dime.scl_slope ~= 0 & ismember(nii.hdr.dime.datatype, [2,4,8,16,64,256,512,768]) & (nii.hdr.dime.scl_slope ~= 1 | nii.hdr.dime.scl_inter ~= 0)
+	  nii.img = nii.hdr.dime.scl_slope * double(nii.img) + nii.hdr.dime.scl_inter;
+	end
+
+	if nii.hdr.dime.scl_slope ~= 0 & ismember(nii.hdr.dime.datatype, [32,1792])
+	  nii.img = nii.hdr.dime.scl_slope * double(nii.img) + nii.hdr.dime.scl_inter;
+	end
+
