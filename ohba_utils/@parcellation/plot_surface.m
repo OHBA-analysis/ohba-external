@@ -1,4 +1,4 @@
-function plot_surface(p,data,surface_inflation,single_plot,interptype)
+function hfig = plot_surface(p,data,surface_inflation,single_plot,interptype)
     % Render volume data onto a surface
     %
     % *REQUIRES WORKBENCH*
@@ -6,9 +6,20 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
     % INPUTS
     % - p - parcellation object
     % - data - data that can be saved to a nii file via p.savenii(data)
-    % - surface_inflation - integer level of inflation for display surface (default=0, no inflation)
-    % - single_plot - put the two hemispheres together (default=false, like Workbench)
+    % - surface_inflation - integer level of inflation for display surface
+    %   (default=0, no inflation)
+    % - single_plot - put the two hemispheres together (default=false, like
+    %   Workbench)
     % - interptype - passed to workbench (default='trilinear')
+    %
+    % If the data has more than one volume, the output plot will also have
+    % more than one volume. The figure has a property 'current_vol' that lets
+    % you set the which one is displayed e.g.
+    %
+    % h = p.plot_surface(data) h.current_vol = 2; % Display second volume
+    %
+    % The buttons on the top of the figure let you manually cycle through
+    % volumes, or display them in sequence
 
 
     if nargin < 5 || isempty(interptype) 
@@ -48,8 +59,6 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
     end
 
 
-
-
     % Map volume to surface
     runcmd('wb_command -volume-to-surface-mapping %s %s %s -%s',niifile,surf_right,output_right,interptype)
     runcmd('wb_command -volume-to-surface-mapping %s %s %s -%s',niifile,surf_left,output_left,interptype)
@@ -58,7 +67,7 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
     vl = gifti(output_left);
     sr = gifti(display_surf_right);
     vr = gifti(output_right);
-    hfig = figure;
+    hfig = figure();
 
     if single_plot
         ax = gca;
@@ -67,14 +76,13 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
         sg(1) = patch(ax,'Faces',sl.faces,'vertices',sl.vertices);
         s(2) = patch(ax,'Faces',sr.faces,'vertices',sr.vertices,'CData',[]);
         sg(2) = patch(ax,'Faces',sl.faces,'vertices',sl.vertices);
-
-
     else
         set(hfig,'Position',[1 1 2 1].*get(hfig,'Position'));
         ax(1) = subplot(1,2,1);
         s(1) = patch(ax(1),'Faces',sl.faces,'vertices',sl.vertices,'CData',[]);
         hold on
         sg(1) = patch(ax(1),'Faces',sl.faces,'vertices',sl.vertices);
+        t(1) = title(ax(1),' ')
 
         ax(2) = subplot(1,2,2);
         s(2) = patch(ax(2),'Faces',sr.faces,'vertices',sr.vertices,'CData',[]);
@@ -83,24 +91,140 @@ function plot_surface(p,data,surface_inflation,single_plot,interptype)
 
         lrotate = addlistener(ax(1),'View','PostSet',@(a,b,c) set(ax(2),'View',[-1 1].*get(ax(1),'View')));
         rrotate = addlistener(ax(2),'View','PostSet',@(a,b,c) set(ax(1),'View',[-1 1].*get(ax(2),'View')));
-
     end
 
-    set(s(1),'FaceVertexCData',vl.cdata)
-    set(s(2),'FaceVertexCData',vr.cdata)
-
-    set(sg(1),'FaceVertexCData',0.4*ones(size(vl.cdata,1),3));
-    set(sg(2),'FaceVertexCData',0.4*ones(size(vr.cdata,1),3));
-    set(sg(1),'FaceVertexAlphaData',+~isfinite(vl.cdata),'FaceAlpha','interp','AlphaDataMapping','none');
-    set(sg(2),'FaceVertexAlphaData',+~isfinite(vr.cdata),'FaceAlpha','interp','AlphaDataMapping','none');
+    addprop(hfig,'left_cdata');
+    addprop(hfig,'right_cdata');
+    hfig.left_cdata = vl.cdata;
+    hfig.right_cdata = vl.cdata;
+    t = uicontrol(hfig,'style','text','position',[20    20    80    20]);
 
     axis(ax,'equal');
     axis(ax,'vis3d');
     set(ax(1),'View', [-90 0]);
-    set(ax,'CLim',[min([vl.cdata;vr.cdata]) max([vl.cdata;vr.cdata])]);
+    set(ax,'CLim',[min([vl.cdata(:);vr.cdata(:)]) max([vl.cdata(:);vr.cdata(:)])]);
 
     arrayfun(@(x) shading(x,'interp'),ax);
     arrayfun(@(x) colorbar(x,'Location','SouthOutside'),ax);
     axis(ax,'off');
     rotate3d(hfig,'on');
+
+    tb = uitoolbar(hfig);
+    cdata = button_cdata();
+    b(1) = uipushtool(tb,'CData',cdata.prev,'ClickedCallback',@(a,b,c) prev(hfig));
+    b(2) = uipushtool(tb,'CData',cdata.next,'ClickedCallback',@(a,b,c) next(hfig));
+    b(3) = uipushtool(tb,'CData',cdata.play,'ClickedCallback',@(a,b,c) play(hfig));
+    b(4) = uipushtool(tb,'CData',cdata.stop,'ClickedCallback',@(a,b,c) stop(hfig));
+
+    addprop(hfig,'playing');
+    hfig.playing = 0;
+    p = addprop(hfig,'current_vol');
+    p.SetObservable = true;
+    hfig.UserData = addlistener(hfig,'current_vol','PostSet',@(a,b,c) sync(hfig,s,sg,t));
+    hfig.current_vol = 1;
+
+function next(hfig)
+    hfig.current_vol = 1+mod(hfig.current_vol,size(hfig.left_cdata,2));
+
+function prev(hfig)
+    hfig.current_vol = 1-mod(hfig.current_vol,size(hfig.left_cdata,2));
+
+function play(hfig)
+    if size(hfig.left_cdata,2) > 1
+        hfig.playing = 1;
+        while get(hfig,'playing')
+            next(hfig);
+        end
+    end
+
+function stop(hfig)
+    hfig.playing = 0;
+
+function sync(hfig,s,sg,t)
+    set(s(1),'FaceVertexCData',hfig.left_cdata(:,hfig.current_vol));
+    set(s(2),'FaceVertexCData',hfig.right_cdata(:,hfig.current_vol));
+    set(sg(1),'FaceVertexCData',0.4*ones(size(hfig.left_cdata,1),3));
+    set(sg(2),'FaceVertexCData',0.4*ones(size(hfig.right_cdata,1),3));
+    set(sg(1),'FaceVertexAlphaData',+~isfinite(hfig.left_cdata(:,hfig.current_vol)),'FaceAlpha','interp','AlphaDataMapping','none');
+    set(sg(2),'FaceVertexAlphaData',+~isfinite(hfig.right_cdata(:,hfig.current_vol)),'FaceAlpha','interp','AlphaDataMapping','none');
+    set(t,'String',sprintf('%d of %d',hfig.current_vol,size(hfig.left_cdata,2)));
+    drawnow
+
+function cdata = button_cdata()
+
+    levels = [0.94 0.90 0.5 0.06];
+
+    play = [ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 3 2 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 4 4 3 2 1 1 1 1 1 1 1 1 1;...
+             1 1 1 4 4 4 4 3 2 1 1 1 1 1 1 1;...
+             1 1 1 4 4 4 4 4 4 3 2 1 1 1 1 1;...
+             1 1 1 4 4 4 4 4 4 4 4 3 2 1 1 1;...
+             1 1 1 4 4 4 4 4 4 4 4 4 4 3 1 1;...
+             1 1 1 4 4 4 4 4 4 4 4 4 4 3 1 1;...
+             1 1 1 4 4 4 4 4 4 4 4 3 2 1 1 1;...
+             1 1 1 4 4 4 4 4 4 3 2 1 1 1 1 1;...
+             1 1 1 4 4 4 4 3 2 1 1 1 1 1 1 1;...
+             1 1 1 4 4 3 2 1 1 1 1 1 1 1 1 1;...
+             1 1 1 3 2 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1];
+
+    stop = [ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 4 4 4 4 4 4 4 4 4 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1];
+
+
+    next = [ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 4 4 2 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 2 4 4 2 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 2 4 4 2 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 2 4 4 2 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 2 4 4 2 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 2 4 4 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 2 4 4 1 1 1 1 1;...
+             1 1 1 1 1 1 1 2 4 4 2 1 1 1 1 1;...
+             1 1 1 1 1 1 2 4 4 2 1 1 1 1 1 1;...
+             1 1 1 1 1 2 4 4 2 1 1 1 1 1 1 1;...
+             1 1 1 1 1 4 4 2 1 1 1 1 1 1 1 1;...
+             1 1 1 1 4 4 2 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1];
+
+    prev = [ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 2 4 4 1 1 1 1;...
+             1 1 1 1 1 1 1 1 2 4 4 2 1 1 1 1;...
+             1 1 1 1 1 1 1 2 4 4 2 1 1 1 1 1;...
+             1 1 1 1 1 1 2 4 4 2 1 1 1 1 1 1;...
+             1 1 1 1 1 2 4 4 2 1 1 1 1 1 1 1;...
+             1 1 1 1 2 4 4 2 1 1 1 1 1 1 1 1;...
+             1 1 1 1 2 4 4 2 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 2 4 4 2 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 2 4 4 2 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 2 4 4 2 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 2 4 4 2 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 2 4 4 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1;...
+             1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1];
+
+    cdata.play = repmat(levels(play),1,1,3);
+    cdata.stop = repmat(levels(stop),1,1,3);
+    cdata.next = repmat(levels(next),1,1,3);
+    cdata.prev = repmat(levels(prev),1,1,3);
 
