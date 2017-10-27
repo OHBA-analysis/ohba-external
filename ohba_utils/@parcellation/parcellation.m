@@ -452,9 +452,12 @@ classdef parcellation
 				activation = self.weight_mask;
 			end
 			
-			fname = self.savenii(activation);
-			o = osleyes({self.template_fname,fname},options);
-			delete(fname)
+			if ndims(activation) < 3
+				activation = self.to_vol(activation);
+			end
+
+			[~,~,xform] = nii.load(self.template_fname);
+			o = osleyes({self.template_fname,struct('img',activation,'xform',xform)},options);
 		end
 
 
