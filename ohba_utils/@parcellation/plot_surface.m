@@ -77,20 +77,26 @@ function hfig = plot_surface(p,data,surface_inflation,single_plot,interptype)
         s(2) = patch(ax,'Faces',sr.faces,'vertices',sr.vertices,'CData',[]);
         sg(2) = patch(ax,'Faces',sl.faces,'vertices',sl.vertices);
     else
-        set(hfig,'Position',[1 1 2 1].*get(hfig,'Position'));
-        ax(1) = subplot(1,2,1);
+        overrun = 0.05;
+        ax(1) = axes('OuterPosition',[0-overrun 0.0 0.5+overrun*2 1]); 
         s(1) = patch(ax(1),'Faces',sl.faces,'vertices',sl.vertices,'CData',[]);
         hold on
         sg(1) = patch(ax(1),'Faces',sl.faces,'vertices',sl.vertices);
         t(1) = title(ax(1),' ')
 
-        ax(2) = subplot(1,2,2);
+        ax(2) = axes('OuterPosition',[0.5-overrun 0.0 0.5+overrun*2 1]); 
         s(2) = patch(ax(2),'Faces',sr.faces,'vertices',sr.vertices,'CData',[]);
         hold on
         sg(2) = patch(ax(2),'Faces',sr.faces,'vertices',sr.vertices);
 
         lrotate = addlistener(ax(1),'View','PostSet',@(a,b,c) set(ax(2),'View',[-1 1].*get(ax(1),'View')));
         rrotate = addlistener(ax(2),'View','PostSet',@(a,b,c) set(ax(1),'View',[-1 1].*get(ax(2),'View')));
+
+        xmax = max(abs([sl.vertices(:,1);sr.vertices(:,1)]));
+        set(ax(1),'XLim',[-xmax 5],'XLimMode','manual') 
+        set(ax(2),'XLim',[-5 xmax],'XLimMode','manual') 
+        set(ax,'YLim',[min([sl.vertices(:,2);sr.vertices(:,2)]) max([sl.vertices(:,2);sr.vertices(:,2)]) ]) 
+        set(ax,'ZLim',[min([sl.vertices(:,3);sr.vertices(:,3)]) max([sl.vertices(:,3);sr.vertices(:,3)]) ]) 
     end
 
     addprop(hfig,'left_cdata');
@@ -99,7 +105,10 @@ function hfig = plot_surface(p,data,surface_inflation,single_plot,interptype)
     hfig.right_cdata = vr.cdata;
     t = uicontrol(hfig,'style','text','position',[20    20    80    20]);
 
-    axis(ax,'equal');
+    set(ax,'DataAspectRatio',[1 1 1])
+
+
+    %axis(ax,'equal');
     axis(ax,'vis3d');
     set(ax(1),'View', [-90 0]);
     set(ax,'CLim',[min([vl.cdata(:);vr.cdata(:)]) max([vl.cdata(:);vr.cdata(:)])]);
