@@ -96,7 +96,7 @@ function hfig = plot_surface(p,data,surface_inflation,single_plot,interptype)
     addprop(hfig,'left_cdata');
     addprop(hfig,'right_cdata');
     hfig.left_cdata = vl.cdata;
-    hfig.right_cdata = vl.cdata;
+    hfig.right_cdata = vr.cdata;
     t = uicontrol(hfig,'style','text','position',[20    20    80    20]);
 
     axis(ax,'equal');
