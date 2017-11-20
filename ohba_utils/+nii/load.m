@@ -1,10 +1,17 @@
-function [vol,res,xform] = load(fname)
+function [vol,res,xform,xform_codes] = load(fname)
 	% Load a nii volume together with the spatial resolution and xform matrix
 	%
-	% If the NIFTI file's sform code is >0 OR if both the sform and qform codes are zero, then sform will be used
-	% when returning the xform matrix
+	% INPUTS
+	% - fname : File name of a NIFTI file on disk. Must include correct extension
+	%
+	% OUTPUTS
+	% - vol : Volume data (same as read_avw)
+	% - res : 4 elements of the NIFTI header pixdim field (X,Y,Z,T)
+	% - xform : 4x4 transform matrix. If the NIFTI file's sform code is >0 OR if both the sform and qform codes are zero, then sform will be used when returning the xform matrix, otherwise the xform matrix will be computed from the qform quarternion representation
+	% - xform_codes : The sform code and qform code in the image (see also nii.save())
 	%
 	% Romesh Abeysuriya 2017
+
 	assert(ischar(fname),'Input file name must be a string')
     fname = strtrim(fname);
 	assert(logical(exist(fname,'file')),sprintf('Requested file "%s" could not be found',fname))
@@ -42,6 +49,7 @@ function [vol,res,xform] = load(fname)
 		xform(3,:) = [R(3,:)*nii.hdr.dime.pixdim(1)*nii.hdr.dime.pixdim(4) nii.hdr.hist.qoffset_z];
     end
 
+    xform_codes = [nii.hdr.hist.sform_code, nii.hdr.hist.qform_code];
 
 function nii = scale_image(nii)
 	% Apply the value scaling from xform_nii.m without the transformations

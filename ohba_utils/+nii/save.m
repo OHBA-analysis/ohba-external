@@ -1,13 +1,18 @@
-function fname = save(vol,res,xform,fname)
-	% Save a nii file together with a given xform matrix
+function fname = save(vol,res,xform,fname,xform_codes)
+    % Save a nii file together with a given xform matrix
 	%
-	% INPUTS
-	% vol - volume matrix to save to nii file
-	% res - Spatial resolution
-	% fname - File name of nii file to save
-	% xform - Optional 4x4 matrix. If left empty, then an identity matrix will be assumed
-	% The NIFTI toolbox will set sformcode=1 and nii.load() will display a warning
-	% if this is the case, to indicate the information may be missing
+    % INPUTS
+    % - vol : volume matrix to save to nii file
+    % - res : Spatial resolution
+    % - xform : Optional 4x4 matrix. If left empty, then an identity matrix
+    %   will be assumed. The NIFTI toolbox will set sformcode=1 and nii.load()
+    %   will display a warning if this is the case, to indicate the
+    %   information may be missing
+    % - fname : File name of nii file to save
+    % - xform_codes : Two element vector with [sform_code qform_code]. Default
+    %   is [4 0] which corresponds to standard MNI space. The default values
+    %   should generally be used unless you are working with scanner-
+    %   anatomical images
 	%
 	% Resolution can be specified as a scalar, which is used for all 3 spatial
 	% dimensions, or as a vector that gets inserted into the NIFTI header pixdim
@@ -19,7 +24,10 @@ function fname = save(vol,res,xform,fname)
 	%
 	% Romesh Abeysuriya 2017
 
-
+    if nargin < 5 || isempty(xform_codes) 
+        xform_codes = [4 0];
+    end
+    
     fname = strtrim(fname);
     [pathstr,fname,ext] = fileparts(fname);
     if isempty(ext) || strcmp(ext,'.nii')
@@ -36,8 +44,8 @@ function fname = save(vol,res,xform,fname)
 
     if ~isempty(xform)
     	assert(all(size(xform)==[4 4]),'xform must be a 4x4 matrix')
-    	nii.hdr.hist.qform_code = 0;
-    	nii.hdr.hist.sform_code = 4;
+    	nii.hdr.hist.sform_code = xform_codes(1);
+        nii.hdr.hist.qform_code = xform_codes(2);
     	nii.hdr.hist.srow_x = xform(1,:);
     	nii.hdr.hist.srow_y = xform(2,:);
     	nii.hdr.hist.srow_z = xform(3,:);
