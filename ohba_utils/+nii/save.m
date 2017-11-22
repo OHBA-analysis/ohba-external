@@ -12,7 +12,9 @@ function fname = save(vol,res,xform,fname,xform_codes)
     % - xform_codes : Two element vector with [sform_code qform_code]. Default
     %   is [4 0] which corresponds to standard MNI space. The default values
     %   should generally be used unless you are working with scanner-
-    %   anatomical images
+    %   anatomical images. At the moment, this file only sets the sform matrix
+    %   which means that the qform code MUST be zero, as there is no way to ensure 
+    %   that qform remains valid when using this function.
 	%
 	% Resolution can be specified as a scalar, which is used for all 3 spatial
 	% dimensions, or as a vector that gets inserted into the NIFTI header pixdim
@@ -27,6 +29,8 @@ function fname = save(vol,res,xform,fname,xform_codes)
     if nargin < 5 || isempty(xform_codes) 
         xform_codes = [4 0];
     end
+
+    assert(xform_codes(2) == 0,'Saving via nii.save() does not ensure qform is set correctly, so qform_code must equal 0')
     
     fname = strtrim(fname);
     [pathstr,fname,ext] = fileparts(fname);
