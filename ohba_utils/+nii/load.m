@@ -2,7 +2,10 @@ function [vol,res,xform,xform_codes] = load(fname)
 	% Load a nii volume together with the spatial resolution and xform matrix
 	%
 	% INPUTS
-	% - fname : File name of a NIFTI file on disk. Must include correct extension
+	% - fname : File name of a NIFTI file on disk. If the file does not exist,
+	%   '.nii' and '.nii.gz' will be tried. If either one exists, it will be
+	%   used. If both exist, an error will be thrown because it is unclear
+	%   which one to use.
 	%
 	% OUTPUTS
 	% - vol : Volume data (same as read_avw)
@@ -14,13 +17,18 @@ function [vol,res,xform,xform_codes] = load(fname)
 
 	assert(ischar(fname),'Input file name must be a string')
     fname = strtrim(fname);
-    
-    [d n s]=fileparts(fname);
-    if isempty(s)
-        fname=fullfile(d,[n '.nii.gz']);
-    end
 
-	assert(logical(exist(fname,'file')),sprintf('Requested file "%s" could not be found',fname))
+    if ~logical(exist(fname,'file'))
+    	if exist([fname '.nii.gz'],'file') && exist([fname '.nii'],'file')
+    		error(sprintf('"%s" does not exist, but both "%s.nii" and "%s.nii.gz" exist. Cannot unambiguously determine which file to use',fname,fname,fname));
+    	elseif exist([fname '.nii'],'file')
+    		fname = [fname '.nii'];
+    	elseif exist([fname '.nii.gz'],'file')
+    		fname = [fname '.nii.gz'];
+    	else
+    		error(sprintf('Neither "%s", "%s", nor "%s" could not be found',fname,[fname '.nii'],[fname '.nii.gz']));
+    	end
+    end
 
 	nii = load_untouch_nii(fname); % Note that the volume returned by load_untouch_nii corresponds to the volume returned by FSL's read_avw
 	nii = scale_image(nii);
