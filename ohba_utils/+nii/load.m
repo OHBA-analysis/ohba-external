@@ -14,6 +14,12 @@ function [vol,res,xform,xform_codes] = load(fname)
 
 	assert(ischar(fname),'Input file name must be a string')
     fname = strtrim(fname);
+    
+    [d n s]=fileparts(fname);
+    if isempty(s)
+        fname=fullfile(d,[n '.nii.gz']);
+    end
+
 	assert(logical(exist(fname,'file')),sprintf('Requested file "%s" could not be found',fname))
 
 	nii = load_untouch_nii(fname); % Note that the volume returned by load_untouch_nii corresponds to the volume returned by FSL's read_avw
