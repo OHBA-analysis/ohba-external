@@ -18,16 +18,29 @@ function [vol,res,xform,xform_codes] = load(fname)
 	assert(ischar(fname),'Input file name must be a string')
     fname = strtrim(fname);
 
-    if ~logical(exist(fname,'file'))
-    	if exist([fname '.nii.gz'],'file') && exist([fname '.nii'],'file')
-    		error(sprintf('"%s" does not exist, but both "%s.nii" and "%s.nii.gz" exist. Cannot unambiguously determine which file to use',fname,fname,fname));
-    	elseif exist([fname '.nii'],'file')
-    		fname = [fname '.nii'];
-    	elseif exist([fname '.nii.gz'],'file')
-    		fname = [fname '.nii.gz'];
-    	else
-    		error(sprintf('Neither "%s", "%s", nor "%s" could not be found',fname,[fname '.nii'],[fname '.nii.gz']));
+    [pathname,basename,ext] = fileparts(fname);
+    
+    if isempty(ext)
+
+    	ext_niigz = fullfile(pathname,[basename '.nii.gz']);
+    	ext_nii = fullfile(pathname,[basename '.nii']);
+
+    	if exist(fname)
+    		fprintf(2,'File "%s" exists but it has no extension and will be ignored in favour of "%s" or "%s"\n',fname,ext_niigz,ext_nii);
     	end
+   
+    	if exist(ext_niigz,'file') && exist(ext_nii,'file')
+    		error(sprintf('Both "%s" and "%s" exist. Cannot unambiguously determine which file to use',ext_niigz,ext_nii));
+    	elseif exist(ext_nii,'file')
+    		fname = ext_nii;
+    	elseif exist(ext_niigz,'file')
+    		fname = ext_niigz;
+    	else
+    		error(sprintf('Neither "%s" nor "%s" could not be found',ext_niigz,ext_nii));
+    	end
+    	
+    elseif ~exist(fname,'file')
+    	error('File "%s" not found',fname);
     end
 
 	nii = load_untouch_nii(fname); % Note that the volume returned by load_untouch_nii corresponds to the volume returned by FSL's read_avw
