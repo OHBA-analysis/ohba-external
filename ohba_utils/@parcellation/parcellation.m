@@ -120,25 +120,7 @@ classdef parcellation
 			end
 
 			% Load the input file
-			if ischar(input_mask) && ~isempty(strfind(input_mask,'nii'))  % nifti input
-				
-				% See if there is a corresponding label file in the same directory
-				% Do this first because input_mask gets converted from filename to mask data
-				if isempty(labels)
-					if ~isempty(strfind(input_mask,'nii.gz'))
-						label_fname = strrep(input_mask,'nii.gz','txt');
-					elseif ~isempty(strfind(input_mask,'nii'))
-						label_fname = strrep(input_mask,'nii','txt');
-					end
-
-					if exist(label_fname,'file')
-						labels = importdata(label_fname);
-					end
-                end
-                assert(logical(exist(input_mask,'file')),sprintf('Requested file "%s" could not be found',input_mask))
-				input_mask = nii.load(input_mask);
-
-			elseif ischar(input_mask) % matlab input
+			if ischar(input_mask) && ~isempty(regexp(input_mask,'.*\.mat$'))  % .mat file input
 				d = load(input_mask);
 				input_mask = d.mask;
 
@@ -148,6 +130,24 @@ classdef parcellation
 						labels = d.labels;
 					end
 				end
+			elseif ischar(input_mask) % Otherwise it might be a NIFTI file so let nii.load() handle it
+				% See if there is a corresponding label file in the same directory
+				% Do this first because input_mask gets converted from filename to mask data
+				if isempty(labels)
+					if ~isempty(strfind(input_mask,'nii.gz'))
+						label_fname = strrep(input_mask,'nii.gz','txt');
+					elseif ~isempty(strfind(input_mask,'nii'))
+						label_fname = strrep(input_mask,'nii','txt');
+					else
+						label_fname = [input_mask '.txt']; % Otherwise just try appending .txt to the end
+					end
+
+					if exist(label_fname,'file')
+						labels = importdata(label_fname);
+					end
+                end
+
+				input_mask = nii.load(input_mask);
 			elseif length(input_mask) == 1 % Can enter a spatial resolution to retrieve the whole brain mask i.e. 1 parcel
 				[~,~,img] = self.guess_template(input_mask);
 				input_mask = +logical(img);
