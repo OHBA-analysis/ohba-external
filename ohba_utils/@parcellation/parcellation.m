@@ -456,8 +456,8 @@ classdef parcellation
 				activation = self.to_vol(activation);
 			end
 
-			[~,~,xform] = nii.load(self.template_fname);
-			o = osleyes({self.template_fname,struct('img',activation,'xform',xform)},options);
+			[~,res,xform] = nii.load(self.template_fname);
+			o = osleyes({self.template_fname,struct('img',activation,'xform',xform,'res',res)},options);
 		end
 
 
