@@ -37,7 +37,7 @@ classdef study < handle
 				montage = [];
 			end
 			
-			self.path_prefix = p;
+			self.path_prefix = getfullpath(p);
 			self.montage = montage;
 			f = dir(fullfile(p,'*.dat'));
 			for j = 1:length(f)
