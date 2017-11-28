@@ -3,7 +3,7 @@ classdef study < handle
 	properties
 		path_prefix = '';
 		fnames = {};
-		montage = [];
+		montage; % Can be a string that matches montage names, or an index
 		readfcn = []; % Run this function on every read after setting the target montage
 		subjects = {};
 		subject_mapping = [];
@@ -24,7 +24,15 @@ classdef study < handle
 			a = length(self.subjects);
 		end
 
-		function self = study(p,montage)
+		function self = study(p,montage,filterstr)
+			% Input arguments
+			% montage - set the online montage to read
+			% filterstr - only select files that contain this substring in their file name
+
+			if nargin < 3 || isempty(filterstr) 
+				filterstr = '';
+			end
+
 			if nargin < 2 || isempty(montage) 
 				montage = [];
 			end
@@ -34,6 +42,10 @@ classdef study < handle
 			f = dir(fullfile(p,'*.dat'));
 			for j = 1:length(f)
 				self.fnames{j} = f(j).name;
+			end
+
+			if ~isempty(filterstr)
+				self.fnames = self.fnames(cellfun(@(x) ~isempty(strfind(x,filterstr)),self.fnames));
 			end
 
 			try
