@@ -157,8 +157,7 @@ classdef parcellation
 			if nargin < 3 || isempty(template) 
 				[self.resolution,self.template_fname,self.template_mask] = self.guess_template(input_mask);
 			else
-				assert(ischar(template) && ~isempty(strfind(template,'nii')),'Template must be a .nii file')
-				assert(logical(exist(template,'file')),sprintf('Requested file "%s" could not be found',template))
+				assert(ischar(template),'Template should be the name of a NIFTI file')
 				self.template_fname = template;
 				[self.template_mask,res] = nii.load(template);
 				self.resolution = res(1);
