@@ -35,7 +35,7 @@ function [p,s] = plot_network(self,cmat,threshold,node_vals,labels)
 	end
 	
 	if nargin < 4 || isempty(node_vals) 
-		node_vals = NaN;
+		node_vals = 20;
 	end
 
 	if nargin < 3 || isempty(threshold) 
