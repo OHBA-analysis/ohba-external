@@ -507,7 +507,7 @@ classdef parcellation
 			[coords,weights] = self.roi_coordinates;
 			centers = nan(self.n_parcels,3);
 			for j = 1:self.n_parcels
-				centers(j,:) = sum(bsxfun(@times,coords{j},weights{j}))./sum(weights{j});
+				centers(j,:) = sum(bsxfun(@times,coords{j},weights{j}),1)./sum(weights{j});
 			end
 		end
 
