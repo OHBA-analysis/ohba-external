@@ -1,4 +1,4 @@
-function fname = save(vol,res,xform,fname,xform_codes)
+function fname = save(vol,res,xform,fname,varargin)
     % Save a nii file together with a given xform matrix
 	%
     % INPUTS
@@ -15,6 +15,8 @@ function fname = save(vol,res,xform,fname,xform_codes)
     %   anatomical images. At the moment, this file only sets the sform matrix
     %   which means that the qform code MUST be zero, as there is no way to ensure 
     %   that qform remains valid when using this function.
+    % - toffset - constant offset so that the first time point has this value
+    % - tunits - {'','s','ms','us'} record time units. Default is no units
 	%
 	% Resolution can be specified as a scalar, which is used for all 3 spatial
 	% dimensions, or as a vector that gets inserted into the NIFTI header pixdim
@@ -26,11 +28,26 @@ function fname = save(vol,res,xform,fname,xform_codes)
 	%
 	% Romesh Abeysuriya 2017
 
-    if nargin < 5 || isempty(xform_codes) 
-        xform_codes = [4 0];
+    arg = inputParser;
+    arg.addParameter('xform_codes',[4 0]);
+    arg.addParameter('toffset',0);
+    arg.addParameter('tunits','',@(x) ismember(x,{'','s','ms','us'})); % Specify units for time axis
+    arg.parse(varargin{:});
+
+    % Assume spatial dimension is in mm
+    xyzt_units = int16(0);
+    xyzt_units = bitset(xyzt_units,2);
+    
+    switch arg.Results.tunits
+        case 's'
+            xyzt_units = bitset(xyzt_units,4);
+        case 'ms'
+            xyzt_units = bitset(xyzt_units,5);
+        case 'us'
+            xyzt_units = bitset(xyzt_units,6);
     end
 
-    assert(xform_codes(2) == 0,'Saving via nii.save() does not ensure qform is set correctly, so qform_code must equal 0')
+    assert(arg.Results.xform_codes(2) == 0,'Saving via nii.save() does not ensure qform is set correctly, so qform_code must equal 0')
     
     fname = strtrim(fname);
     [pathstr,fname,ext] = fileparts(fname);
@@ -45,11 +62,13 @@ function fname = save(vol,res,xform,fname,xform_codes)
 
     nii = make_nii(vol,res(1:3)); % Call make_nii with the first part of the resolution
 	nii.hdr.dime.pixdim(1+(1:length(res))) = res;
+    nii.hdr.dime.toffset = arg.Results.toffset;
+    nii.hdr.dime.xyzt_units = xyzt_units;
 
     if ~isempty(xform)
     	assert(all(size(xform)==[4 4]),'xform must be a 4x4 matrix')
-    	nii.hdr.hist.sform_code = xform_codes(1);
-        nii.hdr.hist.qform_code = xform_codes(2);
+    	nii.hdr.hist.sform_code = arg.Results.xform_codes(1);
+        nii.hdr.hist.qform_code = arg.Results.xform_codes(2);
     	nii.hdr.hist.srow_x = xform(1,:);
     	nii.hdr.hist.srow_y = xform(2,:);
     	nii.hdr.hist.srow_z = xform(3,:);

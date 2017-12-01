@@ -14,8 +14,11 @@ function fname_out = quicksave(mat,fname,options_or_input_spat_res,output_spat_r
     % options.output_spat_res is is output spatial resolution in mm
     % options.interp is interpolation method to use for flirt resampling, {default 'trilinear'}
     % options.tres is temporal res in secs {default 1s}
+    % options.toffset is time offset in secs {default 0s}
     % options.mask_fname is niftii filename of mask used, if not passed in (or set to []) then a whole brain mask is assume
     % 
+    % Note time axis is assumed to be in seconds (and the NIFTI time units will be set accordingly) 
+    %
     % RA 2017
     % MWW 2015
 
@@ -56,6 +59,10 @@ function fname_out = quicksave(mat,fname,options_or_input_spat_res,output_spat_r
         options.tres = 1;
     end
 
+    if ~isfield(options,'toffset')
+        options.toffset = 0;
+    end
+
     if ~isfield(options,'mask_fname')
         % Assume whole brain mask if no mask is provided
         [~,options.mask_fname] = parcellation.guess_template(mat); % Try to guess whole brain input mask
@@ -79,7 +86,7 @@ function fname_out = quicksave(mat,fname,options_or_input_spat_res,output_spat_r
     stdbrain=nii.load(options.mask_fname); 
     stdbrain = stdbrain~=0;
     vols = matrix2vols(mat,stdbrain);
-    nii.save(vols,res,xform,fname_out);
+    nii.save(vols,res,xform,fname_out,'toffset',options.toffset,'tunits','s');
 
     if options.output_spat_res ~= options.input_spat_res
         [~,target_mask] = parcellation.guess_template(options.output_spat_res);

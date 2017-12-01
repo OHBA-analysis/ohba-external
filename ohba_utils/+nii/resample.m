@@ -44,7 +44,7 @@ function output_fname = resample(input_nii,output_fname,output_mask,varargin)
     assert(exist(input_nii)~=0,'Input file not found')
     assert(exist(output_mask)~=0,'Output mask file not found')
 
-    [input_x,input_y,input_z,input_vol,input_xform,input_step] = load_nii_vol(input_nii,true);
+    [input_x,input_y,input_z,input_vol,input_xform,input_step,tres,toffset,tunits] = load_nii_vol(input_nii,true);
     [output_x,output_y,output_z,output_mask_vol,output_xform,output_step] = load_nii_vol(output_mask,false);
 
     output_vol = zeros([size(output_x),size(input_vol,4)]);
@@ -62,17 +62,17 @@ function output_fname = resample(input_nii,output_fname,output_mask,varargin)
         output_vol(output_vol < 0) = 0;
     end
 
-    nii.save(output_vol,abs(output_step),output_xform,output_fname);
+    nii.save(output_vol,[abs(output_step) tres],output_xform,output_fname,'toffset',toffset,'tunits',tunits);
 
-function [xg,yg,zg,vol,xform,step] = load_nii_vol(fname,flip)
+function [xg,yg,zg,vol,xform,step,tres,toffset,tunits] = load_nii_vol(fname,flip)
     % Read the input nii file, and construct nd arrays for the spatial coordinates
 
     if nargin < 2 || isempty(flip) 
         flip = false;
     end
-        
-    [vol,input_res,xform] = nii.load(fname);
+    [vol,input_res,xform,~,toffset,tunits] = nii.load(fname);
     step = input_res(1:3).*diag(sign(xform(1:3,1:3)))';
+    tres = input_res(4);
 
     x = xform(1,4):step(1):(xform(1,4)+step(1)*(size(vol,1)-1));
     y = xform(2,4):step(2):(xform(2,4)+step(2)*(size(vol,2)-1));

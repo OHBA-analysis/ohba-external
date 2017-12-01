@@ -1,4 +1,4 @@
-function [vol,res,xform,xform_codes] = load(fname)
+function [vol,res,xform,xform_codes,toffset,tunits] = load(fname)
 	% Load a nii volume together with the spatial resolution and xform matrix
 	%
 	% INPUTS
@@ -47,6 +47,17 @@ function [vol,res,xform,xform_codes] = load(fname)
 	nii = scale_image(nii);
 	vol = double(nii.img);
 	res = nii.hdr.dime.pixdim(2:5);
+	toffset = nii.hdr.dime.toffset;
+	tunit_code = int16(nii.hdr.dime.xyzt_units);
+	if bitget(tunit_code,4)
+		tunits = 's';
+	elseif bitget(tunit_code,5)
+		tunits = 'ms';
+	elseif bitget(tunit_code,6)		
+		tunits = 'us';
+	else
+		tunits = '';
+	end
 
 	if nii.hdr.hist.sform_code == 0 &&  nii.hdr.hist.qform_code == 0
 		fprintf(2,'Warning - *NO* qform/sform header code is provided! Your NIFTI file is *not* usable without this information!\n')
