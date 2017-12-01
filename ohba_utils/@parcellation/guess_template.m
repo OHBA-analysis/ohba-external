@@ -22,7 +22,7 @@ function [spatial_res,mask_fname,mask] = guess_template(m)
 	end 
 
 	% Given a 4D matrix, it's probably XYZ x parcels, so just keep the first volume
-	if ndims(m) == 4
+	if ndims(m) > 3
 		m = squeeze(m(:,:,:,1));
     end
 

@@ -38,6 +38,8 @@ classdef study < handle
 			end
 			
 			self.path_prefix = getfullpath(p);
+			assert(logical(exist(self.path_prefix,'dir')),'Directory %s not found',self.path_prefix);
+
 			self.montage = montage;
 			f = dir(fullfile(p,'*.dat'));
 			for j = 1:length(f)
@@ -47,6 +49,8 @@ classdef study < handle
 			if ~isempty(filterstr)
 				self.fnames = self.fnames(cellfun(@(x) ~isempty(strfind(x,filterstr)),self.fnames));
 			end
+
+			assert(~isempty(self.fnames),'Directory %s does not contain any matching MEEG files',self.path_prefix);
 
 			try
 				for j = 1:self.n
