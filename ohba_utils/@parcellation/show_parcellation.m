@@ -4,12 +4,17 @@ function show_parcellation(p)
 	% Plot the cortical surface
 	f=figure;
 	mesh = gifti(fullfile(osldir,'spm12','canonical','cortex_5124.surf.gii'));
-	trisurf(mesh.faces,mesh.vertices(:,1),mesh.vertices(:,2),mesh.vertices(:,3),'facecolor',0.5*[1 1 1],'edgecolor','none','FaceAlpha',0.1)
-	axis equal
-	axis tight
-	axis vis3d
-	set(gca,'XLim',[min(p.template_coordinates(:,1)) max(p.template_coordinates(:,1))],'YLim',[min(p.template_coordinates(:,2)) max(p.template_coordinates(:,2))],'ZLim',[min(p.template_coordinates(:,3)) max(p.template_coordinates(:,3))]);
-	hold on
+	trisurf( mesh.faces, ...
+        mesh.vertices(:,1), mesh.vertices(:,2), mesh.vertices(:,3), ...
+        'facecolor', 0.5*[1 1 1], ...
+        'edgecolor', 'none', ...
+        'facealpha', 0.1 );
+	axis equal tight vis3d;
+    axis(reshape([ ...
+        min(p.template_coordinates,[],1);
+        max(p.template_coordinates,[],1)
+    ],1,[]));
+	hold on;
 
 	% Add numbers to ROI names in dropdown list
 	nstr = arrayfun(@(j) sprintf('%d - %s',j,p.labels{j}),1:p.n_parcels,'UniformOutput',false);
@@ -26,5 +31,9 @@ end
 
 function draw_roi(p,a,h_roi)
     idx = get(a,'Value');
-    set(h_roi,'XData',p.roi_coordinates{idx}(:,1),'YData',p.roi_coordinates{idx}(:,2),'ZData',p.roi_coordinates{idx}(:,3));
+    set( h_roi, ...
+        'XData', p.roi_coordinates{idx}(:,1), ...
+        'YData', p.roi_coordinates{idx}(:,2), ...
+        'ZData', p.roi_coordinates{idx}(:,3) ...
+    );
 end
