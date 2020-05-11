@@ -39,9 +39,10 @@ display_surf_right = fullfile(osldir,'std_masks',rsurf);
 display_surf_left = fullfile(osldir,'std_masks',lsurf);
 
 % Map volume to surface
-cmd = '/Applications/workbench/bin_macosx64/wb_command -volume-to-surface-mapping %s %s %s -%s';
-runcmd(cmd,niifile,surf_right,output_right,S.interptype)
-runcmd(cmd,niifile,surf_left,output_left,S.interptype)
+wb_command = fullfile( getenv('WBDIR') ,'wb_command');
+cmd = '%s -volume-to-surface-mapping %s %s %s -%s';
+runcmd(cmd,wb_command,niifile,surf_right,output_right,S.interptype)
+runcmd(cmd,wb_command,niifile,surf_left,output_left,S.interptype)
 
 sl = gifti(display_surf_left);
 vl = gifti(output_left);
@@ -61,11 +62,11 @@ end
 % make colormap
 cm = S.cmap;
 if ischar(cm) && strcmp(cm,'reds')
-    r = ones(1,32);
-    g = linspace(1,0,32);
-    b = linspace(1,0,32);
+    r = linspace(.8,1,32);
+    g = linspace(.8,0,32);
+    b = linspace(.8,0,32);
     cm = [r;g;b]';
-    cm = cat(1,[.6 .6 .6],cm);
+    cm = cat(1,[.8 .8 .8],cm);
 elseif ischar(cm)
     cm = eval(cm,32);
 elseif isempty(cm)
@@ -80,12 +81,22 @@ end
 if strcmp(S.montage,'radial')
     hfig = figure('Position',[100 100 768 512]);
 
-    ax(4) = axes('Position',[.05 .15 .33 .35]);
-    ax(1) = axes('Position',[.05 .55 .33 .35]);
-    ax(3) = axes('Position',[.375 .25 .25 .5]);
-    ax(5) = axes('Position',[.62 .15 .33 .35]);
-    ax(2) = axes('Position',[.62 .55 .33 .35]);
+    ax(4) = axes('Position',[.05 .15 .33 .35]);set(gca, 'color', 'none');
+    ax(1) = axes('Position',[.05 .55 .33 .35]);set(gca, 'color', 'none');
+    ax(3) = axes('Position',[.375 .25 .25 .5]);set(gca, 'color', 'none');
+    ax(5) = axes('Position',[.62 .15 .33 .35]);set(gca, 'color', 'none');
+    ax(2) = axes('Position',[.62 .55 .33 .35]);set(gca, 'color', 'none');
     cb_pos = [.4 .2 .2 .02];
+    cb_orient = 'horizontal';
+elseif strcmp(S.montage,'tall')
+    hfig = figure('Position',[100 100 512 768]);
+
+    ax(4) = axes('Position',[.05 .05 .45 .275]);set(gca, 'color', 'none');
+    ax(1) = axes('Position',[.05 .35 .45 .275]);set(gca, 'color', 'none');
+    ax(3) = axes('Position',[.3 .6 .4 .35]);set(gca, 'color', 'none');
+    ax(5) = axes('Position',[.5 .05 .45 .275]);set(gca, 'color', 'none');
+    ax(2) = axes('Position',[.5 .35 .45 .275]);set(gca, 'color', 'none');
+    cb_pos = [.4 .05 .2 .02];
     cb_orient = 'horizontal';
 elseif strcmp(S.montage,'flat')
 
