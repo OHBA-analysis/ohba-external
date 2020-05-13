@@ -9,6 +9,7 @@ function plot_surf_montage(p,data,varargin)
 % clims: [low high]
 % cmap: {Nx3 matrix of colors or string}
 % add_colorbar: bool
+% position: optional Position parameter for figure
 %
 
 arg = inputParser;
@@ -19,6 +20,7 @@ arg.addParameter('interptype','trilinear'); %{trilinear,enclosing}
 arg.addParameter('clims',[]);
 arg.addParameter('cmap',[]);
 arg.addParameter('add_colorbar',true)
+arg.addParameter('position',[])
 
 arg.parse(varargin{:});
 S = arg.Results; % Result of parsing arguments is essentially the settings struct
@@ -79,7 +81,13 @@ end
 
 % We're making a montage
 if strcmp(S.montage,'radial')
-    hfig = figure('Position',[100 100 768 512]);
+    if isempty(S.position)
+        pos = [100 100 768 512];
+    else
+        pos = S.position;
+    end
+
+    hfig = figure('Position', pos);
 
     ax(4) = axes('Position',[.05 .15 .33 .35]);set(gca, 'color', 'none');
     ax(1) = axes('Position',[.05 .55 .33 .35]);set(gca, 'color', 'none');
@@ -89,7 +97,13 @@ if strcmp(S.montage,'radial')
     cb_pos = [.4 .2 .2 .02];
     cb_orient = 'horizontal';
 elseif strcmp(S.montage,'tall')
-    hfig = figure('Position',[100 100 512 768]);
+    if isempty(S.position)
+        pos = [100 100 512 768];
+    else
+        pos = S.position;
+    end
+
+    hfig = figure('Position', pos);
 
     ax(4) = axes('Position',[.05 .05 .45 .275]);set(gca, 'color', 'none');
     ax(1) = axes('Position',[.05 .35 .45 .275]);set(gca, 'color', 'none');
@@ -99,8 +113,13 @@ elseif strcmp(S.montage,'tall')
     cb_pos = [.4 .05 .2 .02];
     cb_orient = 'horizontal';
 elseif strcmp(S.montage,'flat')
+    if isempty(S.position)
+        pos = [100 100 1024 256];
+    else
+        pos = S.position;
+    end
 
-    hfig = figure('Position',[100 100 1024 256]);
+    hfig = figure('Position', pos);
     for ii = 1:5
         if ii==3
             ax(ii) = axes('Position',[.025+((ii-1)*.18)+.01 .1 .155 .8]);
